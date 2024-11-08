@@ -2,23 +2,12 @@
 
 
 
-# Hangman protocole
-
-You are working for a startup that wants to create a new communication app.
-
-The app is simple: it allows users (with unique usernames) to send small text
-messages (maximum 100 characters) to each other. The server is in charge of
-sending the messages to the recipients.
-
-You are asked to define the application protocol that will be used by the
-clients and the server.
-
-Here is **one of the possible results**.
+# Hangman protocol
 
 ## Section 1 - Overview
 
-The SMS (Short Message Service) protocol is a communication protocol that allows
-the sending of text messages (generally short) between users.
+The hangman protocol is a gaming protocol that define the interaction between a server which host a game of hangman and a client that will play the game.  
+It will also let multiple players play against each others.
 
 ## Section 2 - Transport protocol
 
