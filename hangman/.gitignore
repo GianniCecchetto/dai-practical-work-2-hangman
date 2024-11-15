@@ -7,6 +7,7 @@
 .idea/jarRepositories.xml
 .idea/modules.xml
 .idea/workspace.xml
+.idea/material_theme_project_new.xml
 *.iws
 *.iml
 *.ipr
