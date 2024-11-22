@@ -5,16 +5,21 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 
-public class Server {
-    private static final int PORT = 1902;
+public class Server
+{
+    private int port;
 
     private static final String TEXTUAL_DATA = "Test hangman server";
 
     public static String END_OF_LINE = "\n";
 
-    public static void main(String[] args) {
-        try (ServerSocket serverSocket = new ServerSocket(PORT)) {
-            System.out.println("[Server] Listening on port " + PORT);
+    public Server(int port){
+        this.port = port;
+    }
+
+    public void run() {
+        try (ServerSocket serverSocket = new ServerSocket(port)) {
+            System.out.println("[Server] Listening on port " + port);
 
             while (true) {
                 try (Socket socket = serverSocket.accept();

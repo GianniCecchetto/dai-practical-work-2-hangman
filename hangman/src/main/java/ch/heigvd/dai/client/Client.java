@@ -5,25 +5,29 @@ import java.net.*;
 import java.nio.charset.StandardCharsets;
 
 public class Client {
-
-    private static final String HOST = "localhost";
-    private static final int PORT = 1902;
+    private String host;
+    private int port;
 
     private static final String TEXTUAL_DATA = "hangman client";
 
     public static String END_OF_LINE = "\n";
 
-    public static void main(String[] args) {
-        System.out.println("[Client] Connecting to " + HOST + ":" + PORT + "...");
+    public Client(String host, int port) {
+        this.host = host;
+        this.port = port;
+    }
 
-        try (Socket socket = new Socket(HOST, PORT);
+    public void run() {
+        System.out.println("[Client] Connecting to " + host + ":" + port + "...");
+
+        try (Socket socket = new Socket(host, port);
              Reader reader = new InputStreamReader(socket.getInputStream(), StandardCharsets.UTF_8);
              BufferedReader in = new BufferedReader(reader);
              Writer writer = new OutputStreamWriter(socket.getOutputStream(), StandardCharsets.UTF_8);
              BufferedWriter out = new BufferedWriter(writer); ) {
-            System.out.println("[Client] Connected to " + HOST + ":" + PORT);
+            System.out.println("[Client] Connected to " + host + ":" + port);
             System.out.println(
-                    "[Client] Sending textual data to server " + HOST + ":" + PORT + ": " + TEXTUAL_DATA);
+                    "[Client] Sending textual data to server " + host + ":" + port + ": " + TEXTUAL_DATA);
 
             out.write(TEXTUAL_DATA + END_OF_LINE);
             out.flush();
