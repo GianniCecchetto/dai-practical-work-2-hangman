@@ -12,6 +12,8 @@ public class Server {
     public enum Message {
         GAMES,
         GAMESTATE,
+        GOODGUESS,
+        BADGUESS,
         OK,
         ERROR,
     }
@@ -81,18 +83,18 @@ public class Server {
                                 }
 
                                 gameState.newPlayer(clientRequestParts[0]);
-                                System.out.println("[Server] New client joined the game on " + clientRequestParts[1]);
+                                System.out.println("[Server] " + clientRequestParts[0] + " joined the game " + clientRequestParts[1]);
                                 response = Message.OK + END_OF_LINE;
                             }
                             case LISTGAMES -> {
                                 if (gameInProgress) {
                                     response =
                                             Message.ERROR + " 1: a game is already launched" + END_OF_LINE;
-                                } else {
-                                    System.out.println("[Server] Sending game list");
-                                    response = "la list mdr" + END_OF_LINE;
-                                    //response = Message.OK + END_OF_LINE;
+                                    break;
                                 }
+
+                                    System.out.println("[Server] Sending game list");
+                                    response = Message.GAMES + " currently supporting 1 game" + END_OF_LINE;
                             }
                             case GUESS -> {
                                 clientRequestParts = clientRequestParts[1].split(" ", 2);
@@ -114,9 +116,9 @@ public class Server {
                                 }
 
                                 if (gameState.playerGuess(clientRequestParts[0], clientRequestParts[1])){
-                                    response = Message.OK + " " + gameState.getPlayerCurrentGuesses(clientRequestParts[0]) + END_OF_LINE;
+                                    response = Message.GOODGUESS + " " + gameState.getPlayerCurrentGuesses(clientRequestParts[0]) + END_OF_LINE;
                                 } else{
-                                    response = Message.OK + END_OF_LINE;
+                                    response = Message.BADGUESS + END_OF_LINE;
                                 }
                             }
                             case null, default -> {
