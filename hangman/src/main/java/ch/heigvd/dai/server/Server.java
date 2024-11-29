@@ -6,6 +6,8 @@ import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class Server {
     public enum Message {
@@ -24,11 +26,30 @@ public class Server {
     }
 
     public void run() {
-        try (ServerSocket serverSocket = new ServerSocket(port)) {
-            System.out.println("[Server] Listening on port " + port);
+        try (ServerSocket serverSocket = new ServerSocket(port);
+             ExecutorService executor = Executors.newCachedThreadPool(); ) {
+            System.out.println("[Server] listening on port " + port);
 
-            while (true) {
-                try (Socket socket = serverSocket.accept();
+            while (!serverSocket.isClosed()) {
+                Socket clientSocket = serverSocket.accept();
+                executor.submit(new ClientHandler(clientSocket));
+            }
+        } catch (IOException e) {
+            System.out.println("[Server] exception: " + e);
+        }
+    }
+
+    static class ClientHandler implements Runnable {
+
+        private final Socket socket;
+
+        public ClientHandler(Socket socket) {
+            this.socket = socket;
+        }
+
+        @Override
+        public void run() {
+                try (socket;
                      Reader reader = new InputStreamReader(socket.getInputStream(), StandardCharsets.UTF_8);
                      BufferedReader in = new BufferedReader(reader);
                      Writer writer = new OutputStreamWriter(socket.getOutputStream(), StandardCharsets.UTF_8);
@@ -48,8 +69,7 @@ public class Server {
 
                     while (!socket.isClosed()) {
                         String clientRequest = in.readLine();
-
-
+                        
                         if (clientRequest == null) {
                             socket.close();
                             continue;
@@ -99,7 +119,7 @@ public class Server {
                                 response = Message.ERROR + " -1: invalid message" + END_OF_LINE;
                             }
                         }
-                       // System.out.println(response);
+                        // System.out.println(response);
                         out.write(response);
                         out.flush();
                     }
@@ -109,11 +129,7 @@ public class Server {
                     System.out.println("[Server] IO exception: " + e);
                     //return 1;
                 }
-            }
-        } catch (IOException e) {
-            System.out.println("[Server] IO exception: " + e);
         }
     }
-
 
 }
