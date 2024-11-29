@@ -1,0 +1,18 @@
+@startuml sendEmptyGuess
+
+title Send a guess that is empty
+
+participant "Client 1" as Client1
+participant "Server" as Server
+
+== Join a game ==
+Client1->Server: Establish connection
+Server-->Client1: Connection established
+Client1->Server: JOIN gege 1
+Server->Client1: OK
+
+== Send an empty guess ==
+Client1->Server: GUESS
+Server-->Client1: ERROR 1
+
+@enduml
