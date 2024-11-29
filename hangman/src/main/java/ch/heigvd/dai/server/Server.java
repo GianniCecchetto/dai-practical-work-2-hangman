@@ -1,6 +1,7 @@
 package ch.heigvd.dai.server;
 
 import ch.heigvd.dai.client.Client;
+import ch.heigvd.dai.game.GameState;
 
 import java.io.*;
 import java.net.ServerSocket;
@@ -19,8 +20,13 @@ public class Server {
 
     public static String END_OF_LINE = "\n";
 
+    private GameState gameState;
+
     public Server(int port){
         this.port = port;
+
+        gameState = new GameState();
+        gameState.startGame();
     }
 
     public void run() {
@@ -67,6 +73,14 @@ public class Server {
                         System.out.println("[Server] Got a message: " + message);
                         switch (message) {
                             case JOIN -> {
+                                clientRequestParts = clientRequestParts[1].split(" ", 2);
+
+                                if (clientRequestParts.length < 2) {
+                                    response = Message.ERROR + " not enough arguments" + END_OF_LINE;
+                                    break;
+                                }
+
+                                gameState.newPlayer(clientRequestParts[0]);
                                 System.out.println("[Server] New client joined the game on " + clientRequestParts[1]);
                                 response = Message.OK + END_OF_LINE;
                             }
@@ -81,25 +95,35 @@ public class Server {
                                 }
                             }
                             case GUESS -> {
+                                clientRequestParts = clientRequestParts[1].split(" ", 2);
+
+                                if (clientRequestParts.length < 2) {
+                                    response = Message.ERROR + " not enough arguments" + END_OF_LINE;
+                                    break;
+                                }
+
                                 if (clientRequestParts[1].length() > 50) {
                                     response = Message.ERROR + " 2: more than 50 character" + END_OF_LINE;
                                     break;
                                 }else if(clientRequestParts[1].isEmpty()) {
                                     response = Message.ERROR + " 1: empty string" + END_OF_LINE;
                                     break;
+                                }else if(!gameState.playerExist(clientRequestParts[0])) {
+                                    response = Message.ERROR + " 3: Player doesn't exist in this game" + END_OF_LINE;
+                                    break;
                                 }
 
-                                try {
+                                if (gameState.playerGuess(clientRequestParts[0], clientRequestParts[1])){
+                                    response = Message.OK + " " + gameState.getPlayerCurrentGuesses(clientRequestParts[0]) + END_OF_LINE;
+                                } else{
                                     response = Message.OK + END_OF_LINE;
-                                } catch (NumberFormatException e) {
-                                    response = Message.ERROR + " 2: the guess is not a character or a word" + END_OF_LINE;
                                 }
                             }
                             case null, default -> {
                                 response = Message.ERROR + " -1: invalid message" + END_OF_LINE;
                             }
                         }
-                       // System.out.println(response);
+                        System.out.println(response);
                         out.write(response);
                         out.flush();
                     }
