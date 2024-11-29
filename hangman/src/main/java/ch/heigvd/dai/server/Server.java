@@ -40,7 +40,6 @@ public class Server {
     }
 
     static class ClientHandler implements Runnable {
-
         private final Socket socket;
 
         public ClientHandler(Socket socket) {
