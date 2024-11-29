@@ -1,5 +1,7 @@
 package ch.heigvd.dai.game;
 
+import java.io.BufferedWriter;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -13,8 +15,8 @@ public class GameState {
         startGame();
     }
 
-    public void newPlayer(String username) {
-        players.put(username, new PlayerState(wordToGuess.length()));
+    public void newPlayer(String username, BufferedWriter out) throws IOException {
+        players.put(username, new PlayerState(wordToGuess.length(), out));
     }
 
     public int getPlayerLives(String username) {
@@ -58,14 +60,22 @@ public class GameState {
             }
 
             currentPlayer.currentGuesses = newCurrentGuesses;
-            return true;
+            return false;
         }
 
         return wordToGuess.equals(guess.toUpperCase());
     }
 
+    public String getUpdate(String username) {
+        return players.get(username).nbLiveLeft + " " + players.get(username).nbGoodGuesses + " " + players.get(username).currentGuesses;
+    }
+
     public boolean playerExist(String username) {
         return players.containsKey(username);
+    }
+
+    public PlayerState[] getPlayers(){
+        return players.values().toArray(new PlayerState[players.size()]);
     }
 
     public void startGame() {

@@ -99,6 +99,7 @@ public class Client {
 
                 switch (message) {
                     case GAMES -> System.out.println("gamelist" + serverResponse);
+                    case CURRENTGUESS -> System.out.println("currentguess" + serverResponse);
                     case GAMESTATE -> System.out.println("game state" + serverResponse);
                     case OK -> System.out.println("server ok." + serverResponse);
                     case ERROR -> {

@@ -1,7 +1,7 @@
 package ch.heigvd.dai.server;
 
 import ch.heigvd.dai.client.Client;
-import ch.heigvd.dai.game.GameState;
+import ch.heigvd.dai.game.*;
 
 import java.io.*;
 import java.net.ServerSocket;
@@ -12,8 +12,7 @@ public class Server {
     public enum Message {
         GAMES,
         GAMESTATE,
-        GOODGUESS,
-        BADGUESS,
+        CURRENTGUESS,
         OK,
         ERROR,
     }
@@ -82,7 +81,7 @@ public class Server {
                                     break;
                                 }
 
-                                gameState.newPlayer(clientRequestParts[0]);
+                                gameState.newPlayer(clientRequestParts[0], out);
                                 System.out.println("[Server] " + clientRequestParts[0] + " joined the game " + clientRequestParts[1]);
                                 response = Message.OK + END_OF_LINE;
                             }
@@ -115,10 +114,15 @@ public class Server {
                                     break;
                                 }
 
-                                if (gameState.playerGuess(clientRequestParts[0], clientRequestParts[1])){
-                                    response = Message.GOODGUESS + " " + gameState.getPlayerCurrentGuesses(clientRequestParts[0]) + END_OF_LINE;
-                                } else{
-                                    response = Message.BADGUESS + END_OF_LINE;
+                                boolean hasWon = gameState.playerGuess(clientRequestParts[0], clientRequestParts[1]);
+
+                                response = Message.CURRENTGUESS + " " + gameState.getPlayerCurrentGuesses(clientRequestParts[0]) + END_OF_LINE;
+
+                                for (PlayerState player : gameState.getPlayers()) {
+                                    String messageToAll = Message.GAMESTATE + " " + gameState.getUpdate(clientRequestParts[0]) + " " + hasWon + " " + clientRequestParts[0] + END_OF_LINE;
+
+                                    player.out.write(messageToAll);
+                                    player.out.flush();
                                 }
                             }
                             case null, default -> {

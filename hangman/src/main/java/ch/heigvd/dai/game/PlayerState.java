@@ -1,11 +1,14 @@
 package ch.heigvd.dai.game;
 
+import java.io.BufferedWriter;
+
 public class PlayerState {
     static final int MAX_LIVES = 10;
 
     int nbLiveLeft;
     int nbGoodGuesses;
     String currentGuesses;
+    public BufferedWriter out;
 
     public PlayerState(){
         nbLiveLeft = MAX_LIVES;
@@ -13,8 +16,9 @@ public class PlayerState {
         currentGuesses = "";
     }
 
-    public PlayerState(int wordLength){
+    public PlayerState(int wordLength, BufferedWriter out){
         currentGuesses = "_".repeat(wordLength);
+        this.out = out;
     }
 
     public void reset(int wordLength){
