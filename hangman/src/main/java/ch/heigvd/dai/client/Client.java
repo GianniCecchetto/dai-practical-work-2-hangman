@@ -17,8 +17,6 @@ public class Client {
         HELP
     }
 
-    private static final String TEXTUAL_DATA = "hangman client";
-
     public static String END_OF_LINE = "\n";
 
     public Client(String host, int port) {
@@ -35,8 +33,6 @@ public class Client {
              Writer writer = new OutputStreamWriter(socket.getOutputStream(), StandardCharsets.UTF_8);
              BufferedWriter out = new BufferedWriter(writer);) {
             System.out.println("[Client] Connected to " + host + ":" + port);
-            System.out.println(
-                    "[Client] Sending textual data to server " + host + ":" + port + ": " + TEXTUAL_DATA);
 
             while (!socket.isClosed()) {
                 System.out.print("> ");
@@ -57,7 +53,7 @@ public class Client {
                             String name = userInputParts[0];
                             int gameId = Integer.parseInt(userInputParts[1]);
 
-                            request = Message.GUESS + " " + name + " " + gameId + END_OF_LINE;
+                            request = Message.JOIN + " " + name + " " + gameId + END_OF_LINE;
                         }
                         case LISTGAMES -> {
                             request = Message.LISTGAMES + END_OF_LINE;
@@ -80,7 +76,7 @@ public class Client {
                 }
 
                 String serverResponse = in.readLine();
-
+                System.out.println(serverResponse);
                 if (serverResponse == null) {
                     socket.close();
                     continue;
@@ -88,18 +84,23 @@ public class Client {
 
                 String[] serverResponseParts = serverResponse.split(" ", 2);
 
-                /*Server.Message message = null;
+                Server.Message message = null;
                 try {
                     message = Server.Message.valueOf(serverResponseParts[0]);
                 } catch (IllegalArgumentException e) {
                     // Do nothing
                 }
 
+                try{
+                    serverResponse = serverResponseParts[1];
+                } catch (RuntimeException e) {
+                    serverResponse = "";
+                }
+
                 switch (message) {
-                    case HIGHER -> System.out.println("The number is higher.");
-                    case LOWER -> System.out.println("The number is lower.");
-                    case CORRECT -> System.out.println("Congratulations! You guessed the number.");
-                    case OK -> System.out.println("Game restarted.");
+                    case GAMES -> System.out.println("gamelist" + serverResponse);
+                    case GAMESTATE -> System.out.println("game state" + serverResponse);
+                    case OK -> System.out.println("server ok." + serverResponse);
                     case ERROR -> {
                         if (serverResponseParts.length < 2) {
                             System.out.println("Invalid message. Please try again.");
@@ -110,12 +111,9 @@ public class Client {
                         System.out.println("Error " + error);
                     }
                     case null, default -> System.out.println("Invalid/unknown command sent by server, ignore.");
-                }*/
+                }
             }
-            out.write(TEXTUAL_DATA + END_OF_LINE);
-            out.flush();
 
-            System.out.println("[Client] Received textual data from server: " + in.readLine());
             System.out.println("[Client] Closing connection...");
         } catch (IOException e) {
             System.out.println("[Client] IO exception: " + e);
