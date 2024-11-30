@@ -11,7 +11,7 @@ import java.util.concurrent.Executors;
 public class Client {
     private String host;
     private int port;
-    private String userName = "default";
+    static private String userName = "default";
 
     public enum Message {
         JOIN,
@@ -43,8 +43,7 @@ public class Client {
                 BufferedReader bir = new BufferedReader(inputReader);
                 String userInput = bir.readLine();
                 String request = null;
-                String name = null;
-                Boolean tryJoin = false;
+
                 try {
                     String[] userInputParts = userInput.split(" ", 2);
                     Message message = Message.valueOf(userInputParts[0].toUpperCase());
@@ -54,11 +53,10 @@ public class Client {
                     switch (message) {
                         case JOIN -> {
                             userInputParts = userInputParts[1].split(" ", 2);
-                            name = userInputParts[0];
+                            userName = userInputParts[0];
                             int gameId = Integer.parseInt(userInputParts[1]);
 
-                            request = Message.JOIN + " " + name + " " + gameId + END_OF_LINE;
-                            tryJoin = true;
+                            request = Message.JOIN + " " + userName + " " + gameId + END_OF_LINE;
                         }
                         case LISTGAMES -> {
                             request = Message.LISTGAMES + END_OF_LINE;
@@ -138,12 +136,7 @@ public class Client {
                       case GAMES -> System.out.println("gamelist" + serverResponse);
                       case CURRENTGUESS -> System.out.println("current guess " + serverResponse);
                       case GAMESTATE -> System.out.println("game state " + serverResponse);
-                      case OK -> {System.out.println("server ok." + serverResponse);
-                                  if(tryJoin) {
-                                      tryJoin = false;
-                                      userName = name;
-                                  }
-                      }
+                      case OK -> System.out.println("server ok." + serverResponse);
                       case ERROR -> {
                           if (serverResponseParts.length < 2) {
                               System.out.println("Invalid message. Please try again.");
