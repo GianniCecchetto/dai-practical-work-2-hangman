@@ -1,0 +1,18 @@
+@startuml joinInexistantGameId
+
+title Join a game with an inexistant game id
+
+participant "Client 1" as Client1
+participant "Server" as Server
+
+== List games ==
+Client1->Server: LISTGAMES
+Server->Client1: GAMES 0 1 3
+
+== Join a game ==
+Client1->Server: Establish connection
+Server-->Client1: Connection established
+Client1->Server: JOIN gege 2
+Server->Client1: ERROR 2
+
+@enduml

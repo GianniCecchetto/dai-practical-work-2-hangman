@@ -1,0 +1,40 @@
+@startuml functionalExample
+
+title Functional example
+
+participant "Client 1" as Client1
+participant "Server" as Server
+participant "Client 2" as Client2
+
+== List available games ==
+Client1->Server: LISTGAMES
+Server->Client1: GAMES 0 1 3
+
+== Join a game ==
+Client1->Server: Establish connection
+Server-->Client1: Connection established
+Client1->Server: JOIN gege 1
+Server->Client1: OK
+
+Client2->Server: Establish connection
+Server-->Client2: Connection established
+Client2->Server: JOIN dnt 1
+Server->Client2: OK
+
+== Send a guess ==
+Client1->Server: GUESS a
+Server->Client1: _a__a_
+
+== Recieve a guess ==
+Server->Client1: GAMEUPDATE 2 3 gege false
+Server->Client2: GAMEUPDATE 2 3 gege false
+
+== Send a guess ==
+Client1->Server: GUESS baobab
+Server->Client1: baobab
+
+== Recieve a guess ==
+Server->Client1: GAMEUPDATE 2 4 gege true
+Server->Client2: GAMEUPDATE 2 4 gege true
+
+@enduml
