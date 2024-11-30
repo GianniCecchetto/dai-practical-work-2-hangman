@@ -9,6 +9,7 @@ public class PlayerState {
     int nbGoodGuesses;
     String currentGuesses;
     public BufferedWriter out;
+    int roomId;
 
     public PlayerState(){
         nbLiveLeft = MAX_LIVES;
@@ -19,8 +20,12 @@ public class PlayerState {
     public int getLives() {
         return nbLiveLeft;
     }
+    public int getRoomId() {
+        return roomId;
+    }
 
-    public PlayerState(int wordLength, BufferedWriter out){
+    public PlayerState(int wordLength,int roomId,BufferedWriter out){
+        this.roomId = roomId;
         nbLiveLeft = MAX_LIVES;
         currentGuesses = "_".repeat(wordLength);
         this.out = out;

@@ -7,6 +7,9 @@ import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -23,13 +26,15 @@ public class Server {
 
     public static String END_OF_LINE = "\n";
 
-    static private GameState gameState;
+    //static private GameState gameState;
+    static private Map<Integer, GameState> gameStates = new HashMap<Integer, GameState>();
+    static private Map<String, Integer> usernameToRoomId = new HashMap<>();
 
     public Server(int port) {
         this.port = port;
 
-        gameState = new GameState();
-        gameState.startGame();
+        //gameState = new GameState();
+        //gameState.startGame();
     }
 
     public void run() {
@@ -100,19 +105,28 @@ public class Server {
                                 break;
                             }
 
-                            gameState.newPlayer(clientRequestParts[0], out);
-                            System.out.println("[Server] " + clientRequestParts[0] + " joined the game " + clientRequestParts[1]);
-                            response = Message.OK + END_OF_LINE;
-                        }
-                        case LISTGAMES -> {
-                            if (gameInProgress) {
-                                response =
-                                        Message.ERROR + " 1: a game is already launched" + END_OF_LINE;
+                            String playerName = clientRequestParts[0];
+                            int roomId;
+                            try {
+                                roomId = Integer.parseInt(clientRequestParts[1]);
+                            } catch (NumberFormatException e) {
+                                response = Message.ERROR + " invalid room ID" + END_OF_LINE;
                                 break;
                             }
 
-                            System.out.println("[Server] Sending game list");
-                            response = Message.GAMES + " currently supporting 1 game" + END_OF_LINE;
+                            if (gameStates.containsKey(roomId)) {
+                                gameStates.get(roomId).newPlayer(playerName,roomId,out);
+                                System.out.println("[Server] Room " + roomId + " already exists. Adding player to this room.");
+                            } else {
+                                gameStates.put(roomId,new GameState());
+                                gameStates.get(roomId).startGame();
+                                gameStates.get(roomId).newPlayer(playerName,roomId,out);
+                                System.out.println("[Server] Room " + roomId + " does not exist. Creating new room.");
+                            }
+
+                            usernameToRoomId.put(playerName, roomId);
+                            System.out.println("[Server] " + playerName + " joined the game " + roomId);
+                            response = Message.OK + END_OF_LINE;
                         }
                         case GUESS -> {
                             clientRequestParts = clientRequestParts[1].split(" ", 2);
@@ -128,21 +142,28 @@ public class Server {
                             } else if (clientRequestParts[1].isEmpty()) {
                                 response = Message.ERROR + " 1: empty string" + END_OF_LINE;
                                 break;
-                            } else if (!gameState.playerExist(clientRequestParts[0])) {
+                            } /*else if (!gameState.playerExist(clientRequestParts[0])) {
                                 response = Message.ERROR + " 3: Player doesn't exist in this game" + END_OF_LINE;
                                 break;
-                            }
+                            }*/
 
-                            boolean hasWon = gameState.playerGuess(clientRequestParts[0], clientRequestParts[1]);
-                            response = Message.GAMESTATE + " " + gameState.getUpdate(clientRequestParts[0]) + " " + hasWon + " " + clientRequestParts[0] + END_OF_LINE;
+                            boolean hasWon = gameStates.get(usernameToRoomId.get(clientRequestParts[0])).playerGuess(clientRequestParts[0], clientRequestParts[1]);
+                            response = Message.GAMESTATE + " "
+                                    + gameStates.get(usernameToRoomId.get(clientRequestParts[0])).getUpdate(clientRequestParts[0])
+                                    + " " + hasWon + " "
+                                    + clientRequestParts[0] + END_OF_LINE;
                             System.out.println("response to specifique player: " + response);
 
-                            for (PlayerState player : gameState.getPlayers()) {
-                                String messageToAll = Message.GAMESTATE + " " + player.getLives() + " " + hasWon + " " + clientRequestParts[0] + END_OF_LINE;
-                                System.out.println("broadcasted response: " + messageToAll);
+                            for (PlayerState player : gameStates.get(usernameToRoomId.get(clientRequestParts[0])).getPlayers()) {
+                                if(player.getRoomId() == gameStates.get(usernameToRoomId.get(clientRequestParts[0])).getPlayerRoomId(clientRequestParts[0])){
+                                    String messageToAll = Message.GAMESTATE + " " +
+                                            gameStates.get(usernameToRoomId.get(clientRequestParts[0])).getPlayerLives(clientRequestParts[0]) +
+                                            " " + hasWon + " " + clientRequestParts[0] + END_OF_LINE;
+                                    System.out.println("broadcasted response: " + messageToAll);
+                                    player.out.write(messageToAll);
+                                    player.out.flush();
+                                }
 
-                                player.out.write(messageToAll);
-                                player.out.flush();
                             }
                         }
                         case null, default -> {
