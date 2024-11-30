@@ -11,6 +11,7 @@ import java.util.concurrent.Executors;
 public class Client {
     private String host;
     private int port;
+    private String userName = "default";
 
     public enum Message {
         JOIN,
@@ -41,20 +42,23 @@ public class Client {
                 Reader inputReader = new InputStreamReader(System.in, StandardCharsets.UTF_8);
                 BufferedReader bir = new BufferedReader(inputReader);
                 String userInput = bir.readLine();
-
+                String request = null;
+                String name = null;
+                Boolean tryJoin = false;
                 try {
                     String[] userInputParts = userInput.split(" ", 2);
                     Message message = Message.valueOf(userInputParts[0].toUpperCase());
 
-                    String request = null;
+                    request = null;
 
                     switch (message) {
                         case JOIN -> {
                             userInputParts = userInputParts[1].split(" ", 2);
-                            String name = userInputParts[0];
+                            name = userInputParts[0];
                             int gameId = Integer.parseInt(userInputParts[1]);
 
                             request = Message.JOIN + " " + name + " " + gameId + END_OF_LINE;
+                            tryJoin = true;
                         }
                         case LISTGAMES -> {
                             request = Message.LISTGAMES + END_OF_LINE;
@@ -62,7 +66,7 @@ public class Client {
                         case GUESS -> {
                             String guess = userInputParts[1];
 
-                            request = Message.GUESS + " " + guess + END_OF_LINE;
+                            request = Message.GUESS + " " + userName + " " + guess + END_OF_LINE;
                         }
                         case HELP -> help();
                     }
@@ -99,6 +103,9 @@ public class Client {
 
         @Override
         public void run() {
+
+
+          
             try (BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()))) {
                 String serverMessage;
 
@@ -106,42 +113,48 @@ public class Client {
                     System.out.print("> ");
 
                     String serverResponse = in.readLine();
-                    System.out.println(serverResponse);
-                    if (serverResponse == null) {
-                        socket.close();
-                        continue;
-                    }
+                  //System.out.println(serverResponse);
+                  if (serverResponse == null) {
+                      socket.close();
+                      continue;
+                  }
 
-                    String[] serverResponseParts = serverResponse.split(" ", 2);
+                  String[] serverResponseParts = serverResponse.split(" ", 2);
 
-                    Server.Message message = null;
-                    try {
-                        message = Server.Message.valueOf(serverResponseParts[0]);
-                    } catch (IllegalArgumentException e) {
-                        // Do nothing
-                    }
+                  Server.Message message = null;
+                  try {
+                      message = Server.Message.valueOf(serverResponseParts[0]);
+                  } catch (IllegalArgumentException e) {
+                      // Do nothing
+                  }
 
-                    try{
-                        serverResponse = serverResponseParts[1];
-                    } catch (RuntimeException e) {
-                        serverResponse = "";
-                    }
+                  try{
+                      serverResponse = serverResponseParts[1];
+                  } catch (RuntimeException e) {
+                      serverResponse = "";
+                  }
 
-                    switch (message) {
-                        case GAMES -> System.out.println("gamelist" + serverResponse);
-                        case GAMESTATE -> System.out.println("game state" + serverResponse);
-                        case OK -> System.out.println("server ok." + serverResponse);
-                        case ERROR -> {
-                            if (serverResponseParts.length < 2) {
-                                System.out.println("Invalid message. Please try again.");
-                                break;
-                            }
+                  switch (message) {
+                      case GAMES -> System.out.println("gamelist" + serverResponse);
+                      case CURRENTGUESS -> System.out.println("current guess " + serverResponse);
+                      case GAMESTATE -> System.out.println("game state " + serverResponse);
+                      case OK -> {System.out.println("server ok." + serverResponse);
+                                  if(tryJoin) {
+                                      tryJoin = false;
+                                      userName = name;
+                                  }
+                      }
+                      case ERROR -> {
+                          if (serverResponseParts.length < 2) {
+                              System.out.println("Invalid message. Please try again.");
+                              break;
+                          }
 
-                            String error = serverResponseParts[1];
-                            System.out.println("Error " + error);
-                        }
-                        case null, default -> System.out.println("Invalid/unknown command sent by server, ignore.");
-                    }
+                          String error = serverResponseParts[1];
+                          System.out.println("Error " + error);
+                      }
+                      case null, default -> System.out.println("Invalid/unknown command sent by server, ignore.");
+                  }
                 }
             } catch (IOException e) {
                 System.err.println("Connexion au serveur perdue : " + e.getMessage());
