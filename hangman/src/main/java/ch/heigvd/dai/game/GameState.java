@@ -62,8 +62,11 @@ public class GameState {
             currentPlayer.currentGuesses = newCurrentGuesses;
             return false;
         }
-
-        return wordToGuess.equals(guess.toUpperCase());
+        if(wordToGuess.equals(guess.toUpperCase())){
+            currentPlayer.currentGuesses = guess.toUpperCase();
+            return true;
+        }
+        return false;
     }
 
     public String getUpdate(String username) {

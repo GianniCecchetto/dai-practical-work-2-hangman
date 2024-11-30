@@ -9,6 +9,7 @@ import java.nio.charset.StandardCharsets;
 public class Client {
     private String host;
     private int port;
+    private String userName = "default";
 
     public enum Message {
         JOIN,
@@ -40,20 +41,23 @@ public class Client {
                 Reader inputReader = new InputStreamReader(System.in, StandardCharsets.UTF_8);
                 BufferedReader bir = new BufferedReader(inputReader);
                 String userInput = bir.readLine();
-
+                String request = null;
+                String name = null;
+                Boolean tryJoin = false;
                 try {
                     String[] userInputParts = userInput.split(" ", 2);
                     Message message = Message.valueOf(userInputParts[0].toUpperCase());
 
-                    String request = null;
+                    request = null;
 
                     switch (message) {
                         case JOIN -> {
                             userInputParts = userInputParts[1].split(" ", 2);
-                            String name = userInputParts[0];
+                            name = userInputParts[0];
                             int gameId = Integer.parseInt(userInputParts[1]);
 
                             request = Message.JOIN + " " + name + " " + gameId + END_OF_LINE;
+                            tryJoin = true;
                         }
                         case LISTGAMES -> {
                             request = Message.LISTGAMES + END_OF_LINE;
@@ -61,7 +65,7 @@ public class Client {
                         case GUESS -> {
                             String guess = userInputParts[1];
 
-                            request = Message.GUESS + " " + guess + END_OF_LINE;
+                            request = Message.GUESS + " " + userName + " " + guess + END_OF_LINE;
                         }
                         case HELP -> help();
                     }
@@ -76,7 +80,7 @@ public class Client {
                 }
 
                 String serverResponse = in.readLine();
-                System.out.println(serverResponse);
+                //System.out.println(serverResponse);
                 if (serverResponse == null) {
                     socket.close();
                     continue;
@@ -99,9 +103,14 @@ public class Client {
 
                 switch (message) {
                     case GAMES -> System.out.println("gamelist" + serverResponse);
-                    case CURRENTGUESS -> System.out.println("currentguess" + serverResponse);
-                    case GAMESTATE -> System.out.println("game state" + serverResponse);
-                    case OK -> System.out.println("server ok." + serverResponse);
+                    case CURRENTGUESS -> System.out.println("current guess " + serverResponse);
+                    case GAMESTATE -> System.out.println("game state " + serverResponse);
+                    case OK -> {System.out.println("server ok." + serverResponse);
+                                if(tryJoin) {
+                                    tryJoin = false;
+                                    userName = name;
+                                }
+                    }
                     case ERROR -> {
                         if (serverResponseParts.length < 2) {
                             System.out.println("Invalid message. Please try again.");

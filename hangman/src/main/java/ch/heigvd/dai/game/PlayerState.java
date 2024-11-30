@@ -16,7 +16,12 @@ public class PlayerState {
         currentGuesses = "";
     }
 
+    public int getLives() {
+        return nbLiveLeft;
+    }
+
     public PlayerState(int wordLength, BufferedWriter out){
+        nbLiveLeft = MAX_LIVES;
         currentGuesses = "_".repeat(wordLength);
         this.out = out;
     }

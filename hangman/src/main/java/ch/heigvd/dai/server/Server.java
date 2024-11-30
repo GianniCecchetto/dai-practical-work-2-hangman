@@ -69,9 +69,9 @@ public class Server {
                         } catch (Exception e) {
                             // Do nothing
                         }
-
+                        System.out.println(message);
                         String response = "";
-                        System.out.println("[Server] Got a message: " + message);
+                        System.out.println("[Server] Got a message: " + message + " From user : " + clientRequestParts[1].split(" ",2)[0]);
                         switch (message) {
                             case JOIN -> {
                                 clientRequestParts = clientRequestParts[1].split(" ", 2);
@@ -115,21 +115,23 @@ public class Server {
                                 }
 
                                 boolean hasWon = gameState.playerGuess(clientRequestParts[0], clientRequestParts[1]);
-
-                                response = Message.CURRENTGUESS + " " + gameState.getPlayerCurrentGuesses(clientRequestParts[0]) + END_OF_LINE;
-
+                                response = Message.GAMESTATE + " " + gameState.getUpdate(clientRequestParts[0]) + " " + hasWon + " " + clientRequestParts[0] + END_OF_LINE;
+                                System.out.println("response to specifique player: "+response);
                                 for (PlayerState player : gameState.getPlayers()) {
-                                    String messageToAll = Message.GAMESTATE + " " + gameState.getUpdate(clientRequestParts[0]) + " " + hasWon + " " + clientRequestParts[0] + END_OF_LINE;
 
-                                    player.out.write(messageToAll);
-                                    player.out.flush();
+                                    String messageToAll = Message.GAMESTATE + " "+player.getLives() +" "+ hasWon + " " + clientRequestParts[0] + END_OF_LINE;
+                                    System.out.println("broadcasted response: "+messageToAll);
+                                   if(player.out != out){
+                                       player.out.write(messageToAll);
+                                       player.out.flush();
+                                   }
                                 }
                             }
                             case null, default -> {
                                 response = Message.ERROR + " -1: invalid message" + END_OF_LINE;
                             }
                         }
-                        System.out.println(response);
+                        //System.out.println(response);
                         out.write(response);
                         out.flush();
                     }
