@@ -10,6 +10,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -32,7 +33,6 @@ public class Server {
 
     public Server(int port) {
         this.port = port;
-
         //gameState = new GameState();
         //gameState.startGame();
     }
@@ -95,7 +95,7 @@ public class Server {
                     }
                     System.out.println(message);
                     String response = "";
-                    System.out.println("[Server] Got a message: " + message + " From user : " + clientRequestParts[1].split(" ", 2)[0]);
+                    //System.out.println("[Server] Got a message: " + message + " From user : " + clientRequestParts[1].split(" ", 2)[0]);
                     switch (message) {
                         case JOIN -> {
                             clientRequestParts = clientRequestParts[1].split(" ", 2);
@@ -126,7 +126,7 @@ public class Server {
 
                             usernameToRoomId.put(playerName, roomId);
                             System.out.println("[Server] " + playerName + " joined the game " + roomId);
-                            response = Message.OK + END_OF_LINE;
+                            response = Message.OK + " " + gameStates.get(usernameToRoomId.get(clientRequestParts[0])).getPlayerLives(clientRequestParts[0]) +END_OF_LINE;
                         }
                         case GUESS -> {
                             clientRequestParts = clientRequestParts[1].split(" ", 2);
@@ -148,10 +148,7 @@ public class Server {
                             }*/
 
                             boolean hasWon = gameStates.get(usernameToRoomId.get(clientRequestParts[0])).playerGuess(clientRequestParts[0], clientRequestParts[1]);
-                            response = Message.GAMESTATE + " "
-                                    + gameStates.get(usernameToRoomId.get(clientRequestParts[0])).getUpdate(clientRequestParts[0])
-                                    + " " + hasWon + " "
-                                    + clientRequestParts[0] + END_OF_LINE;
+                            response = Message.CURRENTGUESS + " " + gameStates.get(usernameToRoomId.get(clientRequestParts[0])).getPlayerCurrentGuesses(clientRequestParts[0])  + END_OF_LINE;
                             System.out.println("response to specifique player: " + response);
 
                             for (PlayerState player : gameStates.get(usernameToRoomId.get(clientRequestParts[0])).getPlayers()) {
@@ -165,6 +162,17 @@ public class Server {
                                 }
 
                             }
+                        }
+                        case LISTGAMES -> {
+                            Set<Integer> roomIds = gameStates.keySet();
+                            if (roomIds.isEmpty()) {
+                                response = Message.GAMES  + END_OF_LINE;
+                                System.out.printf(response);
+                            } else {
+                                response = Message.GAMES +" "+ roomIds.toString() + END_OF_LINE;
+                                System.out.printf(response);
+                            }
+
                         }
                         case null, default -> {
                             response = Message.ERROR + " -1: invalid message" + END_OF_LINE;
