@@ -48,8 +48,11 @@ public class Client {
             while (!socket.isClosed()) {
                 Reader inputReader = new InputStreamReader(System.in, StandardCharsets.UTF_8);
                 BufferedReader bir = new BufferedReader(inputReader);
-                if(!isGameJoined)
-                 display.waitingForJoin();
+                if(!isGameJoined){
+                    display.waitingForJoin();
+                    display.displayCmdPrompt();
+                }
+
                 String userInput = bir.readLine();
                 String request = null;
 
@@ -80,15 +83,14 @@ public class Client {
                     }
 
                     if (request != null) {
-                        System.out.println("request send " + request);
                         out.write(request);
                         out.flush();
                     }
                 } catch (Exception e) {
                     System.out.println("Invalid command. Please try again.");
-                    System.out.print("CMD > ");
-
+                    display.displayCmdPrompt();
                 }
+
             }
 
             System.out.println("[Client] Closing connection...");
@@ -150,15 +152,17 @@ public class Client {
                   switch (message) {
                       case GAMES -> {
                           if(serverResponseParts.length == 1){
-                              System.out.println("no games");
+
                           }else{
-                              System.out.println(serverResponseParts[1]);
+                              display.clearDisplay();
+                              //System.out.println(serverResponseParts[1]);
                               display.displayGamelist(serverResponseParts[1]);
                           }
 
                       }
                       case CURRENTGUESS -> {
                          display.setCurrentWordState(serverResponse);
+                         display.clearDisplay();
                       }
                       case GAMESTATE -> {
                           serverResponseParts = serverResponseParts[1].split(" ", 3);
@@ -168,6 +172,7 @@ public class Client {
                           }else{
                             display.setOpponentLives(serverResponseParts[2], Integer.parseInt(serverResponseParts[0]), Boolean.valueOf(serverResponseParts[1]));
                           }
+                          display.clearDisplay();
                       }
                       case OK -> {
                           System.out.println("server ok." + serverResponse);
@@ -176,6 +181,7 @@ public class Client {
                             display.setUserName(userName);
                             display.setRoomId(roomId);
                             display.setLivesLeft(Integer.valueOf(serverResponse));
+                            display.clearDisplay();
                         }
                       }
                       case ERROR -> {
@@ -193,7 +199,7 @@ public class Client {
                       display.updateGameState();
                   }
 
-
+                    display.displayCmdPrompt();
                 }
             } catch (IOException e) {
                 System.err.println("Connexion au serveur perdue : " + e.getMessage());

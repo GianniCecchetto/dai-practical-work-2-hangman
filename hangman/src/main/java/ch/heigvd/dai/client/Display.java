@@ -96,26 +96,27 @@ public class Display {
     public void setOpponentLives(String userName, int lives, Boolean hasWon) {
         opponentLives.put(userName, Map.entry(lives,hasWon));
     }
-
-    void displayGamelist(String gamelist) {
+    public void clearDisplay(){
         System.out.print("\033[H\033[2J");
+        System.out.flush();
+    }
+    public void displayCmdPrompt(){
+        System.out.print("CMD > ");
+    }
+    void displayGamelist(String gamelist) {
         System.out.println("<===Available Games ===>");
         System.out.println(gamelist);
 
-        System.out.print("CMD > ");
     }
 
     void waitingForJoin(){
-        System.out.print("\033[H\033[2J");
-        System.out.flush();
         System.out.println("  " + Client.Message.JOIN + " <name> <game_id> - Join the game with the id sent with a name.");
         System.out.println("  " + Client.Message.LISTGAMES + " - List all accessible games.");
-        System.out.print("CMD > ");
+
     }
 
     void updateGameState() {
-        System.out.print("\033[H\033[2J");
-        System.out.flush();
+
         System.out.println("=====HANGMAN=====");
         System.out.println("--------");
         System.out.println("Current room: " + roomId);
@@ -152,7 +153,6 @@ public class Display {
         }
         System.out.println("PROGRESS : " + currentWordState);
 
-        System.out.print("CMD > ");
 
     }
 }
