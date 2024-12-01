@@ -5,9 +5,25 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
+
 public class GameState {
     private Map<String, PlayerState> players;
     private String wordToGuess;
+
+    private String[] possibleWords = {
+
+                    "apple",
+                    "banana",
+                    "orange",
+                    "grape",
+                    "peach",
+                    "lemon",
+                    "cherry",
+                    "pear",
+                    "melon",
+                    "plum"
+
+    };
 
     public GameState() {
         players = new HashMap<String, PlayerState>();
@@ -15,10 +31,13 @@ public class GameState {
         startGame();
     }
 
-    public void newPlayer(String username, BufferedWriter out) throws IOException {
-        players.put(username, new PlayerState(wordToGuess.length(), out));
+    public void newPlayer(String username, int roomId,BufferedWriter out) throws IOException {
+        players.put(username, new PlayerState(wordToGuess.length(),roomId,out));
     }
 
+    public int getPlayerRoomId(String username) {
+        return players.get(username).roomId;
+    }
     public int getPlayerLives(String username) {
         return players.get(username).nbLiveLeft;
     }
@@ -82,7 +101,8 @@ public class GameState {
     }
 
     public void startGame() {
-        wordToGuess = "NEWGAME";
+        wordToGuess = possibleWords[(int) (Math.random() * possibleWords.length)];
+        wordToGuess = wordToGuess.toUpperCase();
 
         for (PlayerState player : players.values()) {
             player.reset(wordToGuess.length());
