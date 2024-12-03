@@ -164,12 +164,19 @@ public class Server {
                             }
                         }
                         case LISTGAMES -> {
+                            if(gameStates.isEmpty()){
+                                System.out.println("test");
+                                response = Message.GAMES  + END_OF_LINE;
+                                break;
+                            }
+
+
                             Set<Integer> roomIds = gameStates.keySet();
                             if (roomIds.isEmpty()) {
                                 response = Message.GAMES  + END_OF_LINE;
                                 System.out.printf(response);
                             } else {
-                                response = Message.GAMES +" "+ roomIds.toString() + END_OF_LINE;
+                                response = Message.GAMES +" "+ roomIds + END_OF_LINE;
                                 System.out.printf(response);
                             }
 

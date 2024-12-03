@@ -49,7 +49,6 @@ public class Client {
                 Reader inputReader = new InputStreamReader(System.in, StandardCharsets.UTF_8);
                 BufferedReader bir = new BufferedReader(inputReader);
                 if(!isGameJoined){
-                    display.waitingForJoin();
                     display.displayCmdPrompt();
                 }
 
@@ -75,9 +74,14 @@ public class Client {
                             request = Message.LISTGAMES + END_OF_LINE;
                         }
                         case GUESS -> {
-                            String guess = userInputParts[1];
+                            if(isGameJoined){
+                                String guess = userInputParts[1];
 
-                            request = Message.GUESS + " " + userName + " " + guess + END_OF_LINE;
+                                request = Message.GUESS + " " + userName + " " + guess + END_OF_LINE;
+                            }else{
+                                System.out.println("You must join a game to guess.");
+                            }
+
                         }
                         case HELP -> help();
                     }
@@ -88,7 +92,6 @@ public class Client {
                     }
                 } catch (Exception e) {
                     System.out.println("Invalid command. Please try again.");
-                    display.displayCmdPrompt();
                 }
 
             }
@@ -107,7 +110,7 @@ public class Client {
         System.out.println("  " + Message.GUESS + " <guess> - Submit the character or word you want to guess.");
         System.out.println("  " + Message.HELP + " - Display this help message.");
 
-        System.out.print("CMD > ");
+        display.displayCmdPrompt();
     }
 
     static class MessageReceiver  implements Runnable {
@@ -152,17 +155,23 @@ public class Client {
                   switch (message) {
                       case GAMES -> {
                           if(serverResponseParts.length == 1){
-
-                          }else{
-                              display.clearDisplay();
-                              //System.out.println(serverResponseParts[1]);
-                              display.displayGamelist(serverResponseParts[1]);
+                              System.out.println("\nNo game yet.");
+                              display.displayCmdPrompt();
+                              break;
                           }
 
+                          display.setGameList(serverResponseParts[1]);
+                          if(isGameJoined){
+                                  display.clearDisplay();
+                                  display.setGameListDisplayed(true);
+                          }else{
+                              display.displayGamelist();
+
+                          }
                       }
                       case CURRENTGUESS -> {
-                         display.setCurrentWordState(serverResponse);
-                         display.clearDisplay();
+                          display.clearDisplay();
+                          display.setCurrentWordState(serverResponse);
                       }
                       case GAMESTATE -> {
                           serverResponseParts = serverResponseParts[1].split(" ", 3);
@@ -187,7 +196,7 @@ public class Client {
                       case ERROR -> {
                           if (serverResponseParts.length < 2) {
                               System.out.println("Invalid message. Please try again.");
-                              System.out.print("CMD > ");
+                              display.displayCmdPrompt();
                           }
 
                           String error = serverResponseParts[1];
@@ -197,9 +206,10 @@ public class Client {
                   }
                   if(isGameJoined){
                       display.updateGameState();
+                      display.displayCmdPrompt();
                   }
 
-                    display.displayCmdPrompt();
+
                 }
             } catch (IOException e) {
                 System.err.println("Connexion au serveur perdue : " + e.getMessage());
