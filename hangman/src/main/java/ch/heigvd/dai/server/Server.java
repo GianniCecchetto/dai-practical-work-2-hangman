@@ -19,6 +19,7 @@ public class Server {
         GAMES,
         GAMESTATE,
         CURRENTGUESS,
+        LEFT,
         OK,
         ERROR,
     }
@@ -74,6 +75,9 @@ public class Server {
 
                 // Set game in progress
                 boolean gameInProgress = true;
+                int roomId = 0;
+                String playerName = "default";
+
                 String wordToguess = "test";
 
                 System.out.println("[Server] The word to guess is: " + wordToguess);
@@ -83,6 +87,8 @@ public class Server {
 
                     if (clientRequest == null) {
                         socket.close();
+                        //supprimer le joueur lorsqu'il quit
+                        gameStates.get(usernameToRoomId.get(playerName)).removePlayer(playerName);
                         continue;
                     }
 
@@ -105,8 +111,7 @@ public class Server {
                                 break;
                             }
 
-                            String playerName = clientRequestParts[0];
-                            int roomId;
+                            playerName = clientRequestParts[0];
                             try {
                                 roomId = Integer.parseInt(clientRequestParts[1]);
                             } catch (NumberFormatException e) {
@@ -114,20 +119,27 @@ public class Server {
                                 break;
                             }
 
+                            // Vérifiez si le nom d'utilisateur existe déjà dans cette salle
                             if (gameStates.containsKey(roomId)) {
-                                gameStates.get(roomId).newPlayer(playerName,roomId,out);
+                                GameState gameState = gameStates.get(roomId);
+                                if (gameState.playerExists(playerName)) {
+                                    response = Message.ERROR + " username already taken in this room" + END_OF_LINE;
+                                    break;
+                                }
+                                gameState.newPlayer(playerName, roomId, out);
                                 System.out.println("[Server] Room " + roomId + " already exists. Adding player to this room.");
                             } else {
-                                gameStates.put(roomId,new GameState());
+                                gameStates.put(roomId, new GameState());
                                 gameStates.get(roomId).startGame();
-                                gameStates.get(roomId).newPlayer(playerName,roomId,out);
+                                gameStates.get(roomId).newPlayer(playerName, roomId, out);
                                 System.out.println("[Server] Room " + roomId + " does not exist. Creating new room.");
                             }
 
                             usernameToRoomId.put(playerName, roomId);
                             System.out.println("[Server] " + playerName + " joined the game " + roomId);
-                            response = Message.OK + " " + gameStates.get(usernameToRoomId.get(clientRequestParts[0])).getPlayerLives(clientRequestParts[0]) +END_OF_LINE;
+                            response = Message.OK + " " + gameStates.get(usernameToRoomId.get(clientRequestParts[0])).getPlayerLives(clientRequestParts[0]) + END_OF_LINE;
                         }
+
                         case GUESS -> {
                             clientRequestParts = clientRequestParts[1].split(" ", 2);
 
@@ -181,6 +193,57 @@ public class Server {
                             }
 
                         }
+                        case LEAVE -> {
+                            clientRequestParts = clientRequestParts[1].split(" ", 2);
+
+                            if (clientRequestParts.length < 2) {
+                                response = Message.ERROR + " not enough arguments" + END_OF_LINE;
+                                break;
+                            }
+
+                            playerName = clientRequestParts[0];
+                            try {
+                                roomId = Integer.parseInt(clientRequestParts[1]);
+                            } catch (NumberFormatException e) {
+                                response = Message.ERROR + " invalid room ID" + END_OF_LINE;
+                                break;
+                            }
+
+                            if (!gameStates.containsKey(roomId)) {
+                                response = Message.ERROR + " room does not exist" + END_OF_LINE;
+                                break;
+                            }
+
+                            GameState gameState = gameStates.get(roomId);
+                            if (!gameState.removePlayer(playerName)) {
+                                response = Message.ERROR + " player not found in room" + END_OF_LINE;
+                                break;
+                            }
+
+                            usernameToRoomId.remove(playerName);
+                            System.out.println("[Server] " + playerName + " left the game " + roomId);
+
+                            // Broadcast to all players in the room
+                            //String broadcastMessage = Message.LEAVE + " " + playerName + " has left the game." + END_OF_LINE;
+                            for (PlayerState player : gameState.getPlayers()) {
+                                try {
+                                    player.out.write(Message.LEFT +" "+ playerName + END_OF_LINE);
+                                    player.out.flush();
+                                } catch (IOException e) {
+                                    System.err.println("[Server] Error broadcasting leave message: " + e.getMessage());
+                                }
+                            }
+
+                            // Check if the room is empty and remove it
+                            if (gameState.isEmpty()) {
+                                gameStates.remove(roomId);
+                                System.out.println("[Server] Room " + roomId + " is empty and has been removed.");
+                            }
+
+                            response = Message.LEFT + " " + playerName + END_OF_LINE;
+                        }
+
+
                         case null, default -> {
                             response = Message.ERROR + " -1: invalid message" + END_OF_LINE;
                         }
@@ -192,7 +255,7 @@ public class Server {
                 System.out.println("[Server] Closing connection");
             } catch (IOException e) {
                 System.out.println("[Server] IO exception: " + e);
-                //return 1;
+
             }
         }
     }

@@ -31,6 +31,18 @@ public class GameState {
         startGame();
     }
 
+    public boolean removePlayer(String playerName) {
+        if (players.containsKey(playerName)) {
+            players.remove(playerName);
+            return true;
+        }
+        return false;
+    }
+
+    public boolean isEmpty() {
+        return players.isEmpty();
+    }
+
     public void newPlayer(String username, int roomId,BufferedWriter out) throws IOException {
         players.put(username, new PlayerState(wordToGuess.length(),roomId,out));
     }
@@ -49,6 +61,12 @@ public class GameState {
     public String getPlayerCurrentGuesses(String username) {
         return players.get(username).currentGuesses;
     }
+
+    public boolean playerExists(String playerName) {
+        return players.containsKey(playerName);
+    }
+
+
 
     public boolean playerGuess(String username, String guess) {
         PlayerState currentPlayer = players.get(username);
@@ -79,6 +97,9 @@ public class GameState {
             }
 
             currentPlayer.currentGuesses = newCurrentGuesses;
+            if(wordToGuess.equals(currentPlayer.currentGuesses))
+                return true;
+
             return false;
         }
         if(wordToGuess.equals(guess.toUpperCase())){

@@ -20,6 +20,7 @@ public class Client {
 
     public enum Message {
         JOIN,
+        LEAVE,
         LISTGAMES,
         GUESS,
         HELP
@@ -44,13 +45,10 @@ public class Client {
             ExecutorService executor = Executors.newCachedThreadPool();
             executor.submit(new MessageReceiver(socket));
 
-
+            display.displayCmdPrompt();
             while (!socket.isClosed()) {
                 Reader inputReader = new InputStreamReader(System.in, StandardCharsets.UTF_8);
                 BufferedReader bir = new BufferedReader(inputReader);
-                if(!isGameJoined){
-                    display.displayCmdPrompt();
-                }
 
                 String userInput = bir.readLine();
                 String request = null;
@@ -75,13 +73,27 @@ public class Client {
                         }
                         case GUESS -> {
                             if(isGameJoined){
+                                if(userInputParts[1] == null)
+                                    break;
                                 String guess = userInputParts[1];
+
 
                                 request = Message.GUESS + " " + userName + " " + guess + END_OF_LINE;
                             }else{
                                 System.out.println("You must join a game to guess.");
+                                display.displayCmdPrompt();
                             }
 
+                        }
+                        case LEAVE -> {
+                            if (isGameJoined) {
+                                request = Message.LEAVE + " " + userName + " " + roomId + END_OF_LINE;
+                                isGameJoined = false;
+                                display.clearDisplay();
+                                display.waitingForJoin();
+                            } else {
+                                System.out.println("You are not in a game.");
+                            }
                         }
                         case HELP -> help();
                     }
@@ -92,6 +104,7 @@ public class Client {
                     }
                 } catch (Exception e) {
                     System.out.println("Invalid command. Please try again.");
+                    display.displayCmdPrompt();
                 }
 
             }
@@ -108,6 +121,7 @@ public class Client {
         System.out.println("  " + Message.JOIN + " <name> <game_id> - Join the game with the id sent with a name.");
         System.out.println("  " + Message.LISTGAMES + " - List all accessible games.");
         System.out.println("  " + Message.GUESS + " <guess> - Submit the character or word you want to guess.");
+        System.out.println("  " + Message.LEAVE + " - Leave the current game.");
         System.out.println("  " + Message.HELP + " - Display this help message.");
 
         display.displayCmdPrompt();
@@ -127,9 +141,7 @@ public class Client {
                 String serverMessage;
 
                 while (!socket.isClosed()) {
-                    if(!isGameJoined){
-                        //display.waitingForJoin();
-                    }
+
                     String serverResponse = in.readLine();
                   //System.out.println(serverResponse);
                   if (serverResponse == null) {
@@ -166,8 +178,9 @@ public class Client {
                                   display.setGameListDisplayed(true);
                           }else{
                               display.displayGamelist();
-
+                              display.displayCmdPrompt();
                           }
+
                       }
                       case CURRENTGUESS -> {
                           display.clearDisplay();
@@ -193,16 +206,33 @@ public class Client {
                             display.clearDisplay();
                         }
                       }
+                      case LEFT -> {
+                          if (serverResponseParts[1].equals(userName)) {
+                              isGameJoined = false;
+                              display.clearDisplay();
+                              display.clearRoomData();
+                              System.out.println("You have left the game.");
+                          } else {
+
+                              display.removePlayer(serverResponseParts[1]); // Supprime le joueur de la liste dans l'affichage
+                              display.clearDisplay();
+                              System.out.println(serverResponseParts[1] + " has left the game.");
+                          }
+                          display.displayCmdPrompt();
+                      }
+
                       case ERROR -> {
                           if (serverResponseParts.length < 2) {
                               System.out.println("Invalid message. Please try again.");
-                              display.displayCmdPrompt();
+                          }else{
+                              System.out.println("Error " + serverResponseParts[1]);
                           }
-
-                          String error = serverResponseParts[1];
-                          System.out.println("Error " + error);
+                          display.displayCmdPrompt();
                       }
-                      case null, default -> System.out.println("Invalid/unknown command sent by server, ignore.");
+                      case null, default -> {
+                          System.out.println(serverResponse);
+                          System.out.println("Invalid/unknown command sent by server, ignore.");
+                      }
                   }
                   if(isGameJoined){
                       display.updateGameState();
