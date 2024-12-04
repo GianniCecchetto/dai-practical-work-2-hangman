@@ -4,6 +4,7 @@ import ch.heigvd.dai.client.Client;
 import ch.heigvd.dai.game.*;
 
 import java.io.*;
+import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
@@ -40,6 +41,7 @@ public class Server {
     public void run() {
         try (ServerSocket serverSocket = new ServerSocket(port);
              ExecutorService executor = Executors.newCachedThreadPool();) {
+            System.out.println("[Server] creating server with address " + InetAddress.getLocalHost());
             System.out.println("[Server] listening on port " + port);
 
             while (!serverSocket.isClosed()) {
