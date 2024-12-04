@@ -3,7 +3,7 @@ package ch.heigvd.dai.game;
 import java.io.BufferedWriter;
 
 public class PlayerState {
-    static final int MAX_LIVES = 10;
+    static final int MAX_LIVES = 6;
 
     int nbLiveLeft;
     int nbGoodGuesses;
