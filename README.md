@@ -1,6 +1,6 @@
 # Hangman - DAI Practical Work 2
 
-## Gianni Cecchetto and Nathan Tschantz
+### Gianni Cecchetto and Nathan Tschantz
 
 This project is a hangman game which can be played in multiplayer. It uses `picocli` to make a command line interface with which you can start a server or a client. When a server is created, you can then connect to it with a client to play the game with your friend!
 
@@ -10,9 +10,11 @@ You can read the [protocol](./Protocol.md) of our application Hangman to learn h
 
 ## Installation and Setup
 
+### Prerequisites
+
 Ensure you have Java temurin 21
 
-## Build the Project
+### Build the Project
 
 1. Clone the repository:
 
