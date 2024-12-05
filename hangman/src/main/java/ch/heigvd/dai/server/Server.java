@@ -295,7 +295,6 @@ public class Server {
                             response = Message.LEFT + " " + playerName + END_OF_LINE;
                         }
 
-
                         case null, default -> {
                             // Handle invalid message types.
                             response = Message.ERROR + " -1: invalid message" + END_OF_LINE;
