@@ -81,6 +81,16 @@ public class Display {
 
     public Display() {}
 
+    public void clearRoomData() {
+        opponentLives.clear();        // Efface les adversaires
+        currentWordState = null;      // Réinitialise l'état du mot en cours
+        livesLeft = 0;                // Réinitialise les vies
+        roomId = 0;                   // Réinitialise l'ID de la salle
+        hasWon = false;               // Réinitialise l'état de victoire
+        gameListDisplayed = false;    // Réinitialise l'affichage de la liste de jeux
+    }
+
+
     public void setCurrentWordState(String currentWordState) {
         this.currentWordState = currentWordState;
     }
@@ -103,6 +113,14 @@ public class Display {
 
     public void setGameListDisplayed(Boolean gameListDisplayed) {
         this.gameListDisplayed = gameListDisplayed;
+    }
+    public void removePlayer(String playerName) {
+        if (opponentLives.containsKey(playerName)) {
+            opponentLives.remove(playerName);
+            System.out.println(playerName + " has been removed from the game.");
+        } else {
+            System.out.println(playerName + " was not found in the game.");
+        }
     }
 
     public void setOpponentLives(String userName, int lives, Boolean hasWon) {
