@@ -23,7 +23,8 @@ public class Client {
         LEAVE,
         LISTGAMES,
         GUESS,
-        HELP
+        HELP,
+        QUIT,
     }
 
     public static String END_OF_LINE = "\n";
@@ -75,6 +76,24 @@ public class Client {
                             if(isGameJoined){
                                 if(userInputParts[1] == null)
                                     break;
+                                if(userInputParts[1].isEmpty()){
+                                    System.out.println("Empty guess are not allowed.");
+                                    display.displayCmdPrompt();
+                                    break;
+                                }
+
+                                if(display.getHasWon()){
+                                    System.out.println("You already found the word.\nWait for the game to restart or join another game");
+                                    display.displayCmdPrompt();
+                                    break;
+                                }
+
+                                if(display.getLivesLeft() <= 0){
+                                    System.out.println("You are Dead :(.\nWait for the game to restart or join another game");
+                                    display.displayCmdPrompt();
+                                    break;
+                                }
+
                                 String guess = userInputParts[1];
 
 
@@ -95,10 +114,19 @@ public class Client {
                                 System.out.println("You are not in a game.");
                             }
                         }
-                        case HELP -> help();
+                        case HELP -> display.help();
+                        case QUIT -> {
+                            System.out.println("Exiting the client. Goodbye!");
+                            try {
+                                socket.close();
+                            } catch (IOException e) {
+                                System.err.println("Error closing the socket: " + e.getMessage());
+                            }
+                            System.exit(0);
+                        }
                     }
 
-                    if (request != null) {
+                    if (request != null ) {
                         out.write(request);
                         out.flush();
                     }
@@ -113,18 +141,6 @@ public class Client {
         } catch (IOException e) {
             System.out.println("[Client] IO exception: " + e);
         }
-    }
-
-    private static void help() {
-
-        System.out.println("Usage:");
-        System.out.println("  " + Message.JOIN + " <name> <game_id> - Join the game with the id sent with a name.");
-        System.out.println("  " + Message.LISTGAMES + " - List all accessible games.");
-        System.out.println("  " + Message.GUESS + " <guess> - Submit the character or word you want to guess.");
-        System.out.println("  " + Message.LEAVE + " - Leave the current game.");
-        System.out.println("  " + Message.HELP + " - Display this help message.");
-
-        display.displayCmdPrompt();
     }
 
     static class MessageReceiver  implements Runnable {
@@ -242,7 +258,7 @@ public class Client {
 
                 }
             } catch (IOException e) {
-                System.err.println("Connexion au serveur perdue : " + e.getMessage());
+                System.err.println("Connexion to server lost : " + e.getMessage());
             }
         }
     }
