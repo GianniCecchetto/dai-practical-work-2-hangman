@@ -8,8 +8,8 @@ import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -33,8 +33,8 @@ public class Server {
 
     public static String END_OF_LINE = "\n";
 
-    static private Map<Integer, GameState> gameStates = new HashMap<Integer, GameState>();
-    static private Map<String, Integer> usernameToRoomId = new HashMap<>();
+    static private ConcurrentMap<Integer, GameState> gameStates = new ConcurrentHashMap<Integer, GameState>();
+    static private ConcurrentMap<String, Integer> usernameToRoomId = new ConcurrentHashMap<>();
 
     /**
      * Constructs a Server with the specified port.
@@ -97,10 +97,7 @@ public class Server {
 
                 int roomId = 0;
                 String playerName = "default";
-                String wordToguess = "test";
-                Boolean gameIsRestarting = false;
-
-                System.out.println("[Server] The word to guess is: " + wordToguess);
+                boolean gameIsRestarting = false;
 
                 while (!socket.isClosed()) {
                     gameIsRestarting = false;

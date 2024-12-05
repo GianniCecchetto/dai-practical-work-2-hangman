@@ -129,6 +129,7 @@ public class Client {
                                 request = Message.LEAVE + " " + userName + " " + roomId + END_OF_LINE;
                                 isGameJoined = false;
                                 display.clearDisplay();
+                                display.displayCmdPrompt();
                             } else {
                                 System.out.println("You are not in a game.");
                                 display.displayCmdPrompt();
@@ -245,7 +246,6 @@ public class Client {
                           display.clearDisplay();
                       }
                       case OK -> {
-                          System.out.println("server ok." + serverResponse);
                             isGameJoined = true;
                             display.clearRoomData();
                             display.setUserName(userName);
