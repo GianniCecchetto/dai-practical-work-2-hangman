@@ -165,7 +165,9 @@ public class GameState {
         if (wordToGuess.equals(guess.toUpperCase())) {
             currentPlayer.currentGuesses = guess.toUpperCase();
             return true;
+
         }
+        currentPlayer.nbLiveLeft--;
         return false;
     }
 
