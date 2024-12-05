@@ -111,6 +111,14 @@ public class Display {
         this.hasWon = hasWon;
     }
 
+    public Boolean getHasWon() {
+        return hasWon;
+    }
+
+    public int getLivesLeft() {
+        return livesLeft;
+    }
+
     public void setGameListDisplayed(Boolean gameListDisplayed) {
         this.gameListDisplayed = gameListDisplayed;
     }
@@ -189,5 +197,17 @@ public class Display {
         System.out.println("PROGRESS : " + currentWordState);
 
         //System.out.printf("\033[u");
+    }
+
+    public void help(){
+        System.out.println("Usage:");
+        System.out.println("  " + Client.Message.JOIN + " <name> <game_id> - Join the game with the id sent with a name.");
+        System.out.println("  " + Client.Message.LISTGAMES + " - List all accessible games.");
+        System.out.println("  " + Client.Message.GUESS + " <guess> - Submit the character or word you want to guess.");
+        System.out.println("  " + Client.Message.LEAVE + " - Leave the current game.");
+        System.out.println("  " + Client.Message.QUIT + " - Quit the client completely.");
+        System.out.println("  " + Client.Message.HELP + " - Display this help message.");
+
+        displayCmdPrompt();
     }
 }
