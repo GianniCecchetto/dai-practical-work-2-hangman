@@ -14,6 +14,11 @@ import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+/**
+ * The Server class manages the server-side logic for the Hangman game.
+ * It handles incoming client connections, processes their requests,
+ * and manages the game states for different rooms.
+ */
 public class Server {
     public enum Message {
         GAMES,
@@ -31,10 +36,18 @@ public class Server {
     static private Map<Integer, GameState> gameStates = new HashMap<Integer, GameState>();
     static private Map<String, Integer> usernameToRoomId = new HashMap<>();
 
+    /**
+     * Constructs a Server with the specified port.
+     *
+     * @param port The port on which the server will listen for client connections.
+     */
     public Server(int port) {
         this.port = port;
     }
 
+    /**
+     * Starts the server, listens for client connections, and handles them in separate threads.
+     */
     public void run() {
         try (ServerSocket serverSocket = new ServerSocket(port);
              ExecutorService executor = Executors.newCachedThreadPool();) {
@@ -50,13 +63,24 @@ public class Server {
         }
     }
 
+    /**
+     * Handles the communication with a client, processes their requests, and manages game state updates.
+     */
     static class ClientHandler implements Runnable {
         private final Socket socket;
 
+        /**
+         * Constructs a ClientHandler to handle the given client socket.
+         *
+         * @param socket The socket for communication with the client.
+         */
         public ClientHandler(Socket socket) {
             this.socket = socket;
         }
 
+        /**
+         * The run method processes client requests in a loop, handling messages such as JOIN, GUESS, LISTGAMES, etc.
+         */
         @Override
         public void run() {
             try (socket;
@@ -73,9 +97,7 @@ public class Server {
 
                 int roomId = 0;
                 String playerName = "default";
-
                 String wordToguess = "test";
-
                 Boolean gameIsRestarting = false;
 
                 System.out.println("[Server] The word to guess is: " + wordToguess);
@@ -99,6 +121,7 @@ public class Server {
                     String response = "";
                     switch (message) {
                         case JOIN -> {
+                            // Handle player joining the game.
                             clientRequestParts = clientRequestParts[1].split(" ", 2);
 
                             if (clientRequestParts.length < 2) {
@@ -113,12 +136,14 @@ public class Server {
                                 response = Message.ERROR + " invalid room ID" + END_OF_LINE;
                                 break;
                             }
+
                             GameState gameState;
                             Boolean usrnmtaken = false;
                             for (Integer rid : gameStates.keySet()) {
                                 gameState = gameStates.get(rid);
 
-                                if (gameState.playerExists(playerName)) {System.out.println("username already taken");
+                                if (gameState.playerExists(playerName)) {
+                                    System.out.println("username already taken");
                                     response = Message.ERROR + " username already taken" + END_OF_LINE;
                                     usrnmtaken = true;
                                     break;
@@ -126,6 +151,7 @@ public class Server {
                             }
                             if (usrnmtaken)
                                 break;
+
                             gameState = gameStates.get(roomId);
 
                             if (gameStates.containsKey(roomId)) {
@@ -144,6 +170,7 @@ public class Server {
                         }
 
                         case GUESS -> {
+                            // Handle player's guess request.
                             clientRequestParts = clientRequestParts[1].split(" ", 2);
 
                             if (clientRequestParts.length < 2) {
@@ -165,7 +192,7 @@ public class Server {
                             System.out.println("response to specifique player: " + response);
 
                             for (PlayerState player : gameStates.get(usernameToRoomId.get(clientRequestParts[0])).getPlayers()) {
-                                if(player.getRoomId() == gameStates.get(usernameToRoomId.get(clientRequestParts[0])).getPlayerRoomId(clientRequestParts[0])){
+                                if (player.getRoomId() == gameStates.get(usernameToRoomId.get(clientRequestParts[0])).getPlayerRoomId(clientRequestParts[0])) {
                                     String messageToAll = Message.GAMESTATE + " " +
                                             gameStates.get(usernameToRoomId.get(clientRequestParts[0])).getPlayerLives(clientRequestParts[0]) +
                                             " " + hasWon + " " + clientRequestParts[0] + END_OF_LINE;
@@ -173,9 +200,9 @@ public class Server {
                                     player.out.write(messageToAll);
                                     player.out.flush();
                                 }
-
                             }
-                            if(gameStates.get(usernameToRoomId.get(clientRequestParts[0])).isGameFinished()){
+
+                            if (gameStates.get(usernameToRoomId.get(clientRequestParts[0])).isGameFinished()) {
                                 out.write(response);
                                 out.flush();
 
@@ -202,27 +229,25 @@ public class Server {
                                     }
                                 }
                             }
-
                         }
+
                         case LISTGAMES -> {
-                            if(gameStates.isEmpty()){
-                                System.out.println("test");
-                                response = Message.GAMES  + END_OF_LINE;
+                            // List all available game rooms.
+                            if (gameStates.isEmpty()) {
+                                response = Message.GAMES + END_OF_LINE;
                                 break;
                             }
 
-
                             Set<Integer> roomIds = gameStates.keySet();
                             if (roomIds.isEmpty()) {
-                                response = Message.GAMES  + END_OF_LINE;
-                                System.out.printf(response);
+                                response = Message.GAMES + END_OF_LINE;
                             } else {
-                                response = Message.GAMES +" "+ roomIds + END_OF_LINE;
-                                System.out.printf(response);
+                                response = Message.GAMES + " " + roomIds + END_OF_LINE;
                             }
-
                         }
+
                         case LEAVE -> {
+                            // Handle player leaving the game.
                             clientRequestParts = clientRequestParts[1].split(" ", 2);
 
                             if (clientRequestParts.length < 2) {
@@ -254,7 +279,7 @@ public class Server {
 
                             for (PlayerState player : gameState.getPlayers()) {
                                 try {
-                                    player.out.write(Message.LEFT +" "+ playerName + END_OF_LINE);
+                                    player.out.write(Message.LEFT + " " + playerName + END_OF_LINE);
                                     player.out.flush();
                                 } catch (IOException e) {
                                     System.err.println("[Server] Error broadcasting leave message: " + e.getMessage());
@@ -269,24 +294,23 @@ public class Server {
                             response = Message.LEFT + " " + playerName + END_OF_LINE;
                         }
 
-
                         case null, default -> {
+                            // Handle invalid message types.
                             response = Message.ERROR + " -1: invalid message" + END_OF_LINE;
                         }
                     }
-                    if(!gameIsRestarting){
+
+                    // Send the response to the client if the game is not restarting.
+                    if (!gameIsRestarting) {
                         out.write(response);
                         out.flush();
                     }
-
                 }
 
                 System.out.println("[Server] Closing connection");
             } catch (IOException e) {
                 System.out.println("[Server] IO exception: " + e);
-
             }
         }
     }
-
 }
