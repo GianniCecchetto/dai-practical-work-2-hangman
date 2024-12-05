@@ -8,6 +8,10 @@ import java.nio.charset.StandardCharsets;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+/**
+ * The Client class represents the client-side application for connecting to a multiplayer game server.
+ * It provides functionality for sending commands, receiving server messages, and interacting with the game.
+ */
 public class Client {
     private String host;
     private int port;
@@ -17,35 +21,51 @@ public class Client {
 
     static int roomId;
 
+    /**
+     * Enumeration of available client commands.
+     */
     public enum Message {
-        JOIN,
-        LEAVE,
-        LISTGAMES,
-        GUESS,
-        HELP,
-        QUIT,
+        JOIN,       // Join a game room.
+        LEAVE,      // Leave a game room.
+        LISTGAMES,  // List available game rooms.
+        GUESS,      // Make a guess in the current game.
+        HELP,       // Display help information.
+        QUIT        // Quit the application.
     }
 
     public static String END_OF_LINE = "\n";
 
+    /**
+     * Constructs a Client with the specified host and port.
+     *
+     * @param host The server's hostname or IP address.
+     * @param port The server's port number.
+     */
     public Client(String host, int port) {
         this.host = host;
         this.port = port;
     }
 
+    /**
+     * Starts the client application, connecting to the server and handling user input and server communication.
+     */
     public void run() {
         System.out.println("[Client] Connecting to " + host + ":" + port + "...");
 
         try (Socket socket = new Socket(host, port);
              Writer writer = new OutputStreamWriter(socket.getOutputStream(), StandardCharsets.UTF_8);
-             BufferedWriter out = new BufferedWriter(writer);) {
+             BufferedWriter out = new BufferedWriter(writer)) {
+
             System.out.println("[Client] Connected to " + host + ":" + port);
 
-
+            // Start a thread to handle incoming messages from the server.
             ExecutorService executor = Executors.newCachedThreadPool();
             executor.submit(new MessageReceiver(socket));
 
+            // Display the command prompt for user input.
             display.displayCmdPrompt();
+
+            // Process user input until the socket is closed.
             while (!socket.isClosed()) {
                 Reader inputReader = new InputStreamReader(System.in, StandardCharsets.UTF_8);
                 BufferedReader bir = new BufferedReader(inputReader);
@@ -61,6 +81,13 @@ public class Client {
 
                     switch (message) {
                         case JOIN -> {
+
+                            if(isGameJoined){
+                                System.out.println("You must leave the game before joining an another one.");
+                                display.displayCmdPrompt();
+                                break;
+                            }
+
                             userInputParts = userInputParts[1].split(" ", 2);
                             userName = userInputParts[0];
                             roomId = Integer.parseInt(userInputParts[1]);
@@ -72,36 +99,30 @@ public class Client {
                             request = Message.LISTGAMES + END_OF_LINE;
                         }
                         case GUESS -> {
-                            if(isGameJoined){
-                                if(userInputParts[1] == null)
-                                    break;
-                                if(userInputParts[1].isEmpty()){
-                                    System.out.println("Empty guess are not allowed.");
+                            if (isGameJoined) {
+                                if (userInputParts[1] == null) break;
+                                if (userInputParts[1].isEmpty()) {
+                                    System.out.println("Empty guesses are not allowed.");
                                     display.displayCmdPrompt();
                                     break;
                                 }
-
-                                if(display.getHasWon()){
-                                    System.out.println("You already found the word.\nWait for the game to restart or join another game");
+                                if (display.getHasWon()) {
+                                    System.out.println("You already found the word. Wait for the game to restart or join another game.");
                                     display.displayCmdPrompt();
                                     break;
                                 }
-
-                                if(display.getLivesLeft() <= 0){
-                                    System.out.println("You are Dead :(.\nWait for the game to restart or join another game");
+                                if (display.getLivesLeft() <= 0) {
+                                    System.out.println("You are dead. :( Wait for the game to restart or join another game.");
                                     display.displayCmdPrompt();
                                     break;
                                 }
 
                                 String guess = userInputParts[1];
-
-
                                 request = Message.GUESS + " " + userName + " " + guess + END_OF_LINE;
-                            }else{
+                            } else {
                                 System.out.println("You must join a game to guess.");
                                 display.displayCmdPrompt();
                             }
-
                         }
                         case LEAVE -> {
                             if (isGameJoined) {
@@ -110,6 +131,7 @@ public class Client {
                                 display.clearDisplay();
                             } else {
                                 System.out.println("You are not in a game.");
+                                display.displayCmdPrompt();
                             }
                         }
                         case HELP -> display.help();
@@ -131,7 +153,7 @@ public class Client {
                         }
                     }
 
-                    if (request != null ) {
+                    if (request != null) {
                         out.write(request);
                         out.flush();
                     }
@@ -139,7 +161,6 @@ public class Client {
                     System.out.println("Invalid command. Please try again.");
                     display.displayCmdPrompt();
                 }
-
             }
 
             System.out.println("[Client] Closing connection...");
@@ -148,13 +169,24 @@ public class Client {
         }
     }
 
+    /**
+     * Inner class to handle incoming messages from the server asynchronously.
+     */
     static class MessageReceiver  implements Runnable {
         private Socket socket;
 
+        /**
+         * Constructs a MessageReceiver for the given socket.
+         *
+         * @param socket The socket connected to the server.
+         */
         public MessageReceiver (Socket socket) {
             this.socket = socket;
         }
-
+        /**
+         *
+         * Reads and processes server messages in a separate thread.
+         */
         @Override
         public void run() {
 
