@@ -59,8 +59,8 @@ JOIN <name> <game_id>
 - `OK`: the client has been granted access to the server and the game
 - `ERROR <code>`: an error occurred during the join. The error code is an
   integer between 1 and 2 inclusive. The error codes are as follow:
-    - 1: the client's name is already in use
-    - 2: the game id doesn't exist
+    - 1: the client's name is already in use.
+    - 2: the game_id is not a number.
 
 ### List available games
 
@@ -90,26 +90,62 @@ GUESS <guess>
 
 #### Response
 
-- `<string>`: returns a string containing the good guesses.
-- `ERROR <code>`: an error occurred while sending the guess. The error code is
-  an integer between 1 and 2 inclusive. The error codes are as follow:
+- `CURRENTGUESS <string>`: returns a string containing the good guesses. for example: "A____".
+- `ERROR <code>`: an error occurred while sending the guess. The error code is an integer between 1 and 2 inclusive. The error codes are as follow:
     - 1: the message is empty
     - 2: the message exceeds 50 characters
 
 ### Receive a guess
 
-The server sends a state of the game to the other players which are in the same game indicating the progress of the client which guessed. The client is then responsible for displaying the informations.
+The server sends a state of the game to the other players which are in the same game indicating the progress of the client which guessed. All clients are then responsible for displaying the informations.
 
 #### Request
 
 ```text
-GAMEUPDATE <nb_live_left> <nb_good_guess> <player> <is_winner>
+GAMEUPDATE <nb_live_left> <nb_good_guess> <is_winner> <player>
 ```
 
 - `nb_live_left`: the number of lives left of the player
 - `nb_good_guess`: the number of correct guess of the player
-- `player`: the name of the corresponding player
 - `is_winner`: an int which is 1 if the player has won, 0 if not
+- `player`: the name of the corresponding player
+
+#### Response
+
+None.
+
+### Leave a game
+
+The client send a message to the server to leave the game in which he currently is.
+
+#### Request
+
+```text
+LEAVE <username> <game_id>
+```
+
+- `username`: the username of the player which want to leave.
+- `game_id`: the game in which the player is.
+
+#### Response
+
+- `LEFT <username>`: returns the name of the player that left
+- `ERROR <code>`: an error occurred while trying to leave the game. The error code is an integer between 1 and 3 inclusive. The error codes are as follow:
+-  1: invalid room ID
+-  2: room does not exist
+-  3: player not in the room
+
+### Left a game
+
+The server sends a message to all client which are in the game of a player that left.
+
+#### Request
+
+```text
+LEFT <username>
+```
+
+- `username`: the name of the player that left.
 
 #### Response
 
@@ -120,10 +156,6 @@ None.
 ### Functional example
 
 ![Functional example](./content/functionalExample.svg)
-
-### Join inexistant game id
-
-![Join inexistant game id](./content/joinInexistantGameId.svg)
 
 ### Join with duplicate name
 
@@ -136,3 +168,19 @@ None.
 ### Send too long guess
 
 ![Send too long guess](./content/sendTooLongGuess.svg)
+
+### Join a game with an wrong format game id
+
+![Join a game with an wrong format game id](./content/joinWithDuplicate.svg)
+
+### Leave a game with inexistant game id
+
+![Leave a game with inexistant game id](./content/sendEmptyGuess.svg)
+
+### Leave a game with invalid game id
+
+![Leave a game with invalid game id](./content/sendTooLongGuess.svg)
+
+### Leave a game with wrong game id
+
+![Leave a game with wrong game id](./content/joinWithDuplicate.svg)

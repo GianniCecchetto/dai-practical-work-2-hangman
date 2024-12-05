@@ -133,7 +133,7 @@ public class Server {
                             try {
                                 roomId = Integer.parseInt(clientRequestParts[1]);
                             } catch (NumberFormatException e) {
-                                response = Message.ERROR + " invalid room ID" + END_OF_LINE;
+                                response = Message.ERROR + " 2: the game_id is not a number" + END_OF_LINE;
                                 break;
                             }
 
@@ -259,19 +259,19 @@ public class Server {
                             try {
                                 roomId = Integer.parseInt(clientRequestParts[1]);
                             } catch (NumberFormatException e) {
-                                response = Message.ERROR + " invalid room ID" + END_OF_LINE;
+                                response = Message.ERROR + "1: invalid room ID" + END_OF_LINE;
                                 break;
                             }
 
                             if (!gameStates.containsKey(roomId)) {
-                                response = Message.ERROR + " room does not exist" + END_OF_LINE;
+                                response = Message.ERROR + "2: room does not exist" + END_OF_LINE;
                                 break;
                             }
 
                             GameState gameState = gameStates.get(roomId);
 
                             if (!gameState.removePlayer(playerName)) {
-                                response = Message.ERROR + " player not found in room" + END_OF_LINE;
+                                response = Message.ERROR + "3: player not found in room" + END_OF_LINE;
                                 break;
                             }
 
@@ -291,8 +291,6 @@ public class Server {
                                 gameStates.remove(roomId);
                                 System.out.println("[Server] Room " + roomId + " is empty and has been removed.");
                             }
-
-                            response = Message.LEFT + " " + playerName + END_OF_LINE;
                         }
 
                         case null, default -> {

@@ -159,6 +159,7 @@ public class Client {
                     }
                 } catch (Exception e) {
                     System.out.println("Invalid command. Please try again.");
+                    System.out.println(e.getMessage());
                     display.displayCmdPrompt();
                 }
             }
