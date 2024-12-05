@@ -12,7 +12,7 @@ You can read the [protocol](./Protocol.md) of our application Hangman to learn h
 
 ### Prerequisites
 
-Ensure you have Java temurin 21
+Ensure you have Java temurin 21 installed on your setup.
 
 ### Build the Project
 
@@ -26,6 +26,7 @@ cd dai-practical-work-1
 2. Build the project using Maven:
 
 ```sh
+cd hangman
 ./mvnw dependency:resolve clean install package
 ```
 
@@ -74,11 +75,11 @@ docker run hangman server [-p=<port>]
 
 You can run the app using this command if you pulled it from GitHub Container Registry:
 ```sh
-docker run ghcr.io/giannicecchetto/hangman:latest client -H=<host> [-p=<port>]
+docker run -i ghcr.io/giannicecchetto/hangman:latest client -H=<host> [-p=<port>]
 ```
 or with this command if you've built using the `Dockerfile`:
 ```sh
-docker run hangman client -H=<host> [-p=<port>]
+docker run -i hangman client -H=<host> [-p=<port>]
 ```
 
 #### Command options
