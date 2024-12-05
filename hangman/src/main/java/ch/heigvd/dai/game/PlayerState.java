@@ -10,11 +10,18 @@ public class PlayerState {
     String currentGuesses;
     public BufferedWriter out;
     int roomId;
+    Boolean hasWon = false;
 
     public PlayerState(){
         nbLiveLeft = MAX_LIVES;
         nbGoodGuesses = 0;
         currentGuesses = "";
+    }
+    public void sethasWon(Boolean hasWon) {
+        this.hasWon = hasWon;
+    }
+    public Boolean gethasWon() {
+        return hasWon;
     }
 
     public int getLives() {

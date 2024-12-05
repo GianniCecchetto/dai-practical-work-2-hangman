@@ -66,6 +66,19 @@ public class GameState {
         return players.containsKey(playerName);
     }
 
+    public void playerHasWon(String username, Boolean hasWon) {
+        players.get(username).sethasWon(hasWon);
+    }
+    public Boolean isGameFinished() {
+        for (PlayerState player : players.values()) {
+            if (player.nbLiveLeft > 0 && !player.gethasWon()) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+
 
 
     public boolean playerGuess(String username, String guess) {

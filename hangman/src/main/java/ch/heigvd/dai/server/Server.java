@@ -76,15 +76,18 @@ public class Server {
                                 + socket.getPort());
 
                 // Set game in progress
-                boolean gameInProgress = true;
+                //boolean gameInProgress = true;
                 int roomId = 0;
                 String playerName = "default";
 
                 String wordToguess = "test";
 
+                Boolean gameIsRestarting = false;
+
                 System.out.println("[Server] The word to guess is: " + wordToguess);
 
                 while (!socket.isClosed()) {
+                    gameIsRestarting = false;
                     String clientRequest = in.readLine();
 
                     if (clientRequest == null) {
@@ -170,6 +173,7 @@ public class Server {
                             }*/
 
                             boolean hasWon = gameStates.get(usernameToRoomId.get(clientRequestParts[0])).playerGuess(clientRequestParts[0], clientRequestParts[1]);
+                            gameStates.get(usernameToRoomId.get(clientRequestParts[0])).playerHasWon(clientRequestParts[0],hasWon);
                             response = Message.CURRENTGUESS + " " + gameStates.get(usernameToRoomId.get(clientRequestParts[0])).getPlayerCurrentGuesses(clientRequestParts[0])  + END_OF_LINE;
                             System.out.println("response to specifique player: " + response);
 
@@ -184,6 +188,36 @@ public class Server {
                                 }
 
                             }
+                            if(gameStates.get(usernameToRoomId.get(clientRequestParts[0])).isGameFinished()){
+                                out.write(response);
+                                out.flush();
+
+                                System.out.println("The game will restart in 5 seconds");
+                                gameIsRestarting = true;
+                                try {
+                                    Thread.sleep(5000);
+                                } catch (InterruptedException e) {
+                                    Thread.currentThread().interrupt();
+                                    System.err.println("Error during sleep: " + e.getMessage());
+                                }
+
+                                // Restart the game
+                                gameStates.get(usernameToRoomId.get(clientRequestParts[0])).startGame();
+
+                                // Broadcast the JOIN message to all players in the room
+                                GameState restartedGame = gameStates.get(usernameToRoomId.get(clientRequestParts[0]));
+                                for (PlayerState player : restartedGame.getPlayers()) {
+                                    try {
+                                        String restartmsg = Message.OK + " " + player.getLives() + END_OF_LINE;
+                                        player.out.write(restartmsg);
+                                        player.out.flush();
+                                        System.out.println("[Server] Broadcasted end game message to player : " + message);
+                                    } catch (IOException e) {
+                                        System.err.println("[Server] Error broadcasting end game message: " + e.getMessage());
+                                    }
+                                }
+                            }
+
                         }
                         case LISTGAMES -> {
                             if(gameStates.isEmpty()){
@@ -258,8 +292,11 @@ public class Server {
                             response = Message.ERROR + " -1: invalid message" + END_OF_LINE;
                         }
                     }
-                    out.write(response);
-                    out.flush();
+                    if(!gameIsRestarting){
+                        out.write(response);
+                        out.flush();
+                    }
+
                 }
 
                 System.out.println("[Server] Closing connection");

@@ -222,13 +222,14 @@ public class Client {
                       }
                       case OK -> {
                           System.out.println("server ok." + serverResponse);
-                        if(tryJoin){
+                        //if(tryJoin){
                             isGameJoined = true;
+                            display.clearRoomData();
                             display.setUserName(userName);
                             display.setRoomId(roomId);
                             display.setLivesLeft(Integer.valueOf(serverResponse));
                             display.clearDisplay();
-                        }
+                       // }
                       }
                       case LEFT -> {
                           if (serverResponseParts[1].equals(userName)) {
