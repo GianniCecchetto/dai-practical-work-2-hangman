@@ -120,14 +120,22 @@ public class Server {
                                 response = Message.ERROR + " invalid room ID" + END_OF_LINE;
                                 break;
                             }
+                            GameState gameState;
+                            Boolean usrnmtaken = false;
+                            for (Integer rid : gameStates.keySet()) {
+                                gameState = gameStates.get(rid);
 
-                            // Vérifiez si le nom d'utilisateur existe déjà dans cette salle
-                            if (gameStates.containsKey(roomId)) {
-                                GameState gameState = gameStates.get(roomId);
-                                if (gameState.playerExists(playerName)) {
-                                    response = Message.ERROR + " username already taken in this room" + END_OF_LINE;
+                                if (gameState.playerExists(playerName)) {System.out.println("username already taken");
+                                    response = Message.ERROR + " username already taken" + END_OF_LINE;
+                                    usrnmtaken = true;
                                     break;
                                 }
+                            }
+                            if (usrnmtaken)
+                                break;
+                            gameState = gameStates.get(roomId);
+
+                            if (gameStates.containsKey(roomId)) {
                                 gameState.newPlayer(playerName, roomId, out);
                                 System.out.println("[Server] Room " + roomId + " already exists. Adding player to this room.");
                             } else {
