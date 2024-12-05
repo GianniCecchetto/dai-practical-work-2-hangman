@@ -109,13 +109,21 @@ public class Client {
                                 request = Message.LEAVE + " " + userName + " " + roomId + END_OF_LINE;
                                 isGameJoined = false;
                                 display.clearDisplay();
-                                display.waitingForJoin();
+                                //display.waitingForJoin();
                             } else {
                                 System.out.println("You are not in a game.");
                             }
                         }
                         case HELP -> display.help();
                         case QUIT -> {
+                            if (isGameJoined) {
+                                request = Message.LEAVE + " " + userName + " " + roomId + END_OF_LINE;
+                                isGameJoined = false;
+                                display.clearDisplay();
+                                out.write(request);
+                                out.flush();
+                                //display.waitingForJoin();
+                            }
                             System.out.println("Exiting the client. Goodbye!");
                             try {
                                 socket.close();
