@@ -1,6 +1,4 @@
 package ch.heigvd.dai.client;
-
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -82,12 +80,12 @@ public class Display {
     public Display() {}
 
     public void clearRoomData() {
-        opponentLives.clear();        // Efface les adversaires
-        currentWordState = null;      // Réinitialise l'état du mot en cours
-        livesLeft = 0;                // Réinitialise les vies
-        roomId = 0;                   // Réinitialise l'ID de la salle
-        hasWon = false;               // Réinitialise l'état de victoire
-        gameListDisplayed = false;    // Réinitialise l'affichage de la liste de jeux
+        opponentLives.clear();
+        currentWordState = null;
+        livesLeft = 0;
+        roomId = 0;
+        hasWon = false;
+        gameListDisplayed = false;
     }
 
 
@@ -147,20 +145,7 @@ public class Display {
 
     }
 
-    void waitingForJoin(){
-        System.out.println("  " + Client.Message.JOIN + " <name> <game_id> - Join the game with the id sent with a name.");
-        System.out.println("  " + Client.Message.LISTGAMES + " - List all accessible games.");
-
-    }
-
     void updateGameState() {
-       /* System.out.printf("\033[s");
-        for (int i = 0; i < 24;++i){
-            if(i != 0){
-                System.out.printf("\033[2K");
-            }
-            System.out.printf("\033[F");
-        }*/
 
         if(gameListDisplayed)
             displayGamelist();
@@ -195,8 +180,6 @@ public class Display {
             System.out.println("Lives: " + livesLeft);
         }
         System.out.println("PROGRESS : " + currentWordState);
-
-        //System.out.printf("\033[u");
     }
 
     public void help(){

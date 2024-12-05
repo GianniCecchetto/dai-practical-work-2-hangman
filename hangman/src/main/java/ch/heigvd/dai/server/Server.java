@@ -9,7 +9,6 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
@@ -29,14 +28,11 @@ public class Server {
 
     public static String END_OF_LINE = "\n";
 
-    //static private GameState gameState;
     static private Map<Integer, GameState> gameStates = new HashMap<Integer, GameState>();
     static private Map<String, Integer> usernameToRoomId = new HashMap<>();
 
     public Server(int port) {
         this.port = port;
-        //gameState = new GameState();
-        //gameState.startGame();
     }
 
     public void run() {
@@ -75,8 +71,6 @@ public class Server {
                                 + ":"
                                 + socket.getPort());
 
-                // Set game in progress
-                //boolean gameInProgress = true;
                 int roomId = 0;
                 String playerName = "default";
 
@@ -92,7 +86,6 @@ public class Server {
 
                     if (clientRequest == null) {
                         socket.close();
-                        //supprimer le joueur lorsqu'il quit
                         gameStates.get(usernameToRoomId.get(playerName)).removePlayer(playerName);
                         continue;
                     }
@@ -101,12 +94,9 @@ public class Server {
                     Client.Message message = null;
                     try {
                         message = Client.Message.valueOf(clientRequestParts[0]);
-                    } catch (Exception e) {
-                        // Do nothing
-                    }
+                    } catch (Exception e) {}
                     System.out.println(message);
                     String response = "";
-                    //System.out.println("[Server] Got a message: " + message + " From user : " + clientRequestParts[1].split(" ", 2)[0]);
                     switch (message) {
                         case JOIN -> {
                             clientRequestParts = clientRequestParts[1].split(" ", 2);
@@ -167,10 +157,7 @@ public class Server {
                             } else if (clientRequestParts[1].isEmpty()) {
                                 response = Message.ERROR + " 1: empty string" + END_OF_LINE;
                                 break;
-                            } /*else if (!gameState.playerExist(clientRequestParts[0])) {
-                                response = Message.ERROR + " 3: Player doesn't exist in this game" + END_OF_LINE;
-                                break;
-                            }*/
+                            }
 
                             boolean hasWon = gameStates.get(usernameToRoomId.get(clientRequestParts[0])).playerGuess(clientRequestParts[0], clientRequestParts[1]);
                             gameStates.get(usernameToRoomId.get(clientRequestParts[0])).playerHasWon(clientRequestParts[0],hasWon);
@@ -201,10 +188,8 @@ public class Server {
                                     System.err.println("Error during sleep: " + e.getMessage());
                                 }
 
-                                // Restart the game
                                 gameStates.get(usernameToRoomId.get(clientRequestParts[0])).startGame();
 
-                                // Broadcast the JOIN message to all players in the room
                                 GameState restartedGame = gameStates.get(usernameToRoomId.get(clientRequestParts[0]));
                                 for (PlayerState player : restartedGame.getPlayers()) {
                                     try {
@@ -267,8 +252,6 @@ public class Server {
                             usernameToRoomId.remove(playerName);
                             System.out.println("[Server] " + playerName + " left the game " + roomId);
 
-                            // Broadcast to all players in the room
-                            //String broadcastMessage = Message.LEAVE + " " + playerName + " has left the game." + END_OF_LINE;
                             for (PlayerState player : gameState.getPlayers()) {
                                 try {
                                     player.out.write(Message.LEFT +" "+ playerName + END_OF_LINE);
@@ -278,7 +261,6 @@ public class Server {
                                 }
                             }
 
-                            // Check if the room is empty and remove it
                             if (gameState.isEmpty()) {
                                 gameStates.remove(roomId);
                                 System.out.println("[Server] Room " + roomId + " is empty and has been removed.");

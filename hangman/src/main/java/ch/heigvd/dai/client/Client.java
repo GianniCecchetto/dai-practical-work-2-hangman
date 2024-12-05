@@ -5,7 +5,6 @@ import ch.heigvd.dai.server.Server;
 import java.io.*;
 import java.net.*;
 import java.nio.charset.StandardCharsets;
-import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -109,7 +108,6 @@ public class Client {
                                 request = Message.LEAVE + " " + userName + " " + roomId + END_OF_LINE;
                                 isGameJoined = false;
                                 display.clearDisplay();
-                                //display.waitingForJoin();
                             } else {
                                 System.out.println("You are not in a game.");
                             }
@@ -122,7 +120,6 @@ public class Client {
                                 display.clearDisplay();
                                 out.write(request);
                                 out.flush();
-                                //display.waitingForJoin();
                             }
                             System.out.println("Exiting the client. Goodbye!");
                             try {
@@ -162,12 +159,8 @@ public class Client {
         public void run() {
 
             try (BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()))) {
-                String serverMessage;
-
                 while (!socket.isClosed()) {
-
                     String serverResponse = in.readLine();
-                  //System.out.println(serverResponse);
                   if (serverResponse == null) {
                       socket.close();
                       continue;
@@ -178,9 +171,7 @@ public class Client {
                   Server.Message message = null;
                   try {
                       message = Server.Message.valueOf(serverResponseParts[0]);
-                  } catch (IllegalArgumentException e) {
-                      // Do nothing
-                  }
+                  } catch (IllegalArgumentException e) {}
 
                   try{
                       serverResponse = serverResponseParts[1];
@@ -222,14 +213,12 @@ public class Client {
                       }
                       case OK -> {
                           System.out.println("server ok." + serverResponse);
-                        //if(tryJoin){
                             isGameJoined = true;
                             display.clearRoomData();
                             display.setUserName(userName);
                             display.setRoomId(roomId);
                             display.setLivesLeft(Integer.valueOf(serverResponse));
                             display.clearDisplay();
-                       // }
                       }
                       case LEFT -> {
                           if (serverResponseParts[1].equals(userName)) {
@@ -239,7 +228,7 @@ public class Client {
                               System.out.println("You have left the game.");
                           } else {
 
-                              display.removePlayer(serverResponseParts[1]); // Supprime le joueur de la liste dans l'affichage
+                              display.removePlayer(serverResponseParts[1]);
                               display.clearDisplay();
                               System.out.println(serverResponseParts[1] + " has left the game.");
                           }

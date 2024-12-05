@@ -27,7 +27,6 @@ public class GameState {
 
     public GameState() {
         players = new HashMap<String, PlayerState>();
-
         startGame();
     }
 
@@ -54,9 +53,6 @@ public class GameState {
         return players.get(username).nbLiveLeft;
     }
 
-    public int getPlayerGoodGuess(String username) {
-        return players.get(username).nbGoodGuesses;
-    }
 
     public String getPlayerCurrentGuesses(String username) {
         return players.get(username).currentGuesses;
@@ -78,9 +74,6 @@ public class GameState {
         return true;
     }
 
-
-
-
     public boolean playerGuess(String username, String guess) {
         PlayerState currentPlayer = players.get(username);
 
@@ -91,8 +84,6 @@ public class GameState {
                 currentPlayer.nbLiveLeft--;
                 return false;
             }
-
-            currentPlayer.nbGoodGuesses++;
 
             String newCurrentGuesses = "";
             for (int i = 0; i < wordToGuess.length(); i++) {
@@ -120,14 +111,6 @@ public class GameState {
             return true;
         }
         return false;
-    }
-
-    public String getUpdate(String username) {
-        return players.get(username).nbLiveLeft + " " + players.get(username).nbGoodGuesses + " " + players.get(username).currentGuesses;
-    }
-
-    public boolean playerExist(String username) {
-        return players.containsKey(username);
     }
 
     public PlayerState[] getPlayers(){
